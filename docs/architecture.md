@@ -60,6 +60,17 @@ It does **not** prove:
 
 A batch-validity/nullifier-state proof is required to remove this trust.
 
+### `packages/crypto`
+
+Defines the off-chain vote-package and batch-manifest formats used before data
+is submitted to `BatchCommitment`. Vote packages intentionally exclude
+timestamps, device IDs, client versions, and other fingerprinting metadata.
+
+The package currently provides deterministic hashes, Merkle roots, inclusion
+receipts, and duplicate-nullifier checks. It does not encrypt votes or prove
+ballot validity yet; those pieces still need real circuits and browser-safe
+cryptography.
+
 ### `TallyVerifier`
 
 Accepts a tally only after an external verifier contract returns `true` for
@@ -73,7 +84,7 @@ publication remains intentionally unavailable.
 | Eligibility | Trusted demo registrar | Audited anonymous eligibility verifier |
 | Biometrics | Not implemented | Optional regulated authentication gateway |
 | Ballot proof | Not implemented | Real circuit proving one valid selection |
-| Batching | Trusted root submission | Batch-validity and state-transition proof |
+| Batching | Deterministic manifest builder plus trusted root submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
 | Threshold tally | Not implemented | Partial decryptions with correctness proofs |
 | Tally verification | Verifier adapter only | Generated and audited verifier contract |

@@ -27,10 +27,10 @@
 
 ## Milestone 4 - Storage and batching
 
-- [ ] Define a minimal vote-package schema without timestamps or client
+- [x] Define a minimal vote-package schema without timestamps or client
   fingerprinting fields
 - [ ] Upload encrypted packages to IPFS
-- [ ] Build deterministic batch manifests and inclusion receipts
+- [x] Build deterministic batch manifests and inclusion receipts
 - [ ] Implement a batch-validity/nullifier-state-transition circuit
 - [ ] Add data-availability failure handling
 
