@@ -66,10 +66,13 @@ Defines the off-chain vote-package and batch-manifest formats used before data
 is submitted to `BatchCommitment`. Vote packages intentionally exclude
 timestamps, device IDs, client versions, and other fingerprinting metadata.
 
-The package currently provides deterministic hashes, Merkle roots, inclusion
-receipts, and duplicate-nullifier checks. It does not encrypt votes or prove
-ballot validity yet; those pieces still need real circuits and browser-safe
-cryptography.
+The package currently provides secp256k1 EC-ElGamal-style encrypted vote
+vectors, deterministic public-key hashes, local demo decryption, homomorphic
+aggregation helpers, deterministic hashes, Merkle roots, inclusion receipts,
+and duplicate-nullifier checks.
+
+It still does not prove ballot validity, prove batch validity, or perform
+threshold decryption. Those pieces need real circuits and verifier contracts.
 
 ### `TallyVerifier`
 
@@ -83,6 +86,7 @@ publication remains intentionally unavailable.
 | --- | --- | --- |
 | Eligibility | Trusted demo registrar | Audited anonymous eligibility verifier |
 | Biometrics | Not implemented | Optional regulated authentication gateway |
+| Ballot encryption | secp256k1 EC-ElGamal-style encrypted vector | Audited election-crypto choice with proof-compatible encoding |
 | Ballot proof | Not implemented | Real circuit proving one valid selection |
 | Batching | Deterministic manifest builder plus trusted root submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |

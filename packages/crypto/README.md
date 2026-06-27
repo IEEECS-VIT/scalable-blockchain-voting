@@ -5,6 +5,9 @@ batcher, IPFS scripts, and circuits must agree on.
 
 Implemented now:
 
+- secp256k1 EC-ElGamal-style encrypted vote vectors;
+- deterministic public-key hashing;
+- local demo decryption and homomorphic aggregation helpers;
 - strict `VotePackageV1` validation;
 - no timestamp, device, browser, or client-version metadata in stored vote
   packages;
@@ -16,11 +19,10 @@ Implemented now:
 
 Not implemented yet:
 
-- real EC-ElGamal encryption;
 - real ballot-validity proof generation;
 - real batch-validity/nullifier-state circuit; or
 - IPFS upload/download.
 
 The current code is intentionally a serialization and commitment layer. It is
-the foundation that real cryptography plugs into next; it is not a replacement
-for the circuits.
+the foundation that real proof systems plug into next; it is not a replacement
+for the circuits or threshold decryption.

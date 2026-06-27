@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 
+import { secp256k1 } from "@noble/curves/secp256k1";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import {
   encodeAbiParameters,
   isHex,
@@ -16,8 +18,14 @@ export const VOTE_PACKAGE_VERSION = 1 as const;
 export const BATCH_MANIFEST_VERSION = 1 as const;
 
 export const BALLOT_CIPHERTEXT_SCHEME =
-  "ec-elgamal-ciphertext-points-v1" as const;
+  "ec-elgamal-secp256k1-compressed-points-v1" as const;
 export const BALLOT_PROOF_SYSTEM = "groth16-ballot-validity-v1" as const;
+
+export type ElectionKeyPair = {
+  privateKey: Hex;
+  publicKey: Hex;
+  publicKeyHash: Bytes32;
+};
 
 export type BallotCiphertextV1 = {
   scheme: typeof BALLOT_CIPHERTEXT_SCHEME;
@@ -71,6 +79,8 @@ export type PackageInclusionReceipt = {
   proof: readonly MerkleProofStep[];
 };
 
+const SECP256K1_ORDER = secp256k1.CURVE.n;
+
 const exactKeys = <T extends Record<string, unknown>>(
   value: T,
   keys: readonly string[],
@@ -101,12 +111,259 @@ function assertHexBytes(value: string, label: string): asserts value is Hex {
   );
 }
 
+function assertCompressedPointHex(value: string, label: string): asserts value is Hex {
+  assertHexBytes(value, label);
+  assert.equal(value.length, 68, `${label} must be a compressed secp256k1 point`);
+  const prefix = value.slice(2, 4).toLowerCase();
+  assert.equal(
+    prefix === "02" || prefix === "03",
+    true,
+    `${label} must use compressed point prefix 02 or 03`,
+  );
+}
+
 const domainHash = (domain: string): Bytes32 => keccak256(stringToHex(domain));
 
 const normalizeBytes32 = (value: Bytes32): Bytes32 =>
   value.toLowerCase() as Bytes32;
 
 const normalizeHex = (value: Hex): Hex => value.toLowerCase() as Hex;
+
+const stripHexPrefix = (value: Hex): string => value.slice(2);
+
+const bytesToPrefixedHex = (value: Uint8Array): Hex =>
+  `0x${bytesToHex(value)}`;
+
+function scalarFromPrivateKey(privateKey: Hex, label = "privateKey"): bigint {
+  assertBytes32(privateKey, label);
+  const scalar = BigInt(privateKey);
+  assert.equal(scalar > 0n && scalar < SECP256K1_ORDER, true, `${label} is not a valid scalar`);
+  return scalar;
+}
+
+function pointFromHex(value: Hex, label: string): typeof secp256k1.ProjectivePoint.BASE {
+  assertCompressedPointHex(value, label);
+  return secp256k1.ProjectivePoint.fromHex(stripHexPrefix(value));
+}
+
+function pointToHex(point: typeof secp256k1.ProjectivePoint.BASE): Hex {
+  return bytesToPrefixedHex(point.toRawBytes(true));
+}
+
+export function createElectionKeyPair(privateKey?: Hex): ElectionKeyPair {
+  const normalizedPrivateKey = privateKey === undefined
+    ? bytesToPrefixedHex(secp256k1.utils.randomPrivateKey())
+    : normalizeHex(privateKey);
+  const publicKey = deriveElectionPublicKey(normalizedPrivateKey);
+  return {
+    privateKey: normalizedPrivateKey,
+    publicKey,
+    publicKeyHash: hashElectionPublicKey(publicKey),
+  };
+}
+
+export function deriveElectionPublicKey(privateKey: Hex): Hex {
+  scalarFromPrivateKey(privateKey);
+  return bytesToPrefixedHex(
+    secp256k1.getPublicKey(hexToBytes(stripHexPrefix(privateKey)), true),
+  );
+}
+
+export function hashElectionPublicKey(publicKey: Hex): Bytes32 {
+  assertCompressedPointHex(publicKey, "electionPublicKey");
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters("bytes32 domain, bytes publicKey"),
+      [domainHash("SVB_ELECTION_PUBLIC_KEY_V1"), publicKey],
+    ),
+  );
+}
+
+export function encryptBallotSelection(params: {
+  electionPublicKey: Hex;
+  candidateCount: number;
+  selectedIndex: number;
+  randomness?: readonly Hex[];
+}): BallotCiphertextV1 {
+  const electionPublicKey = normalizeHex(params.electionPublicKey);
+  const publicKeyPoint = pointFromHex(electionPublicKey, "electionPublicKey");
+  assert.equal(Number.isInteger(params.candidateCount), true, "candidateCount must be an integer");
+  assert.equal(params.candidateCount > 1, true, "candidateCount must be greater than one");
+  assert.equal(Number.isInteger(params.selectedIndex), true, "selectedIndex must be an integer");
+  assert.equal(
+    params.selectedIndex >= 0 && params.selectedIndex < params.candidateCount,
+    true,
+    "selectedIndex out of range",
+  );
+  if (params.randomness !== undefined) {
+    assert.equal(
+      params.randomness.length,
+      params.candidateCount,
+      "randomness must include one scalar per candidate",
+    );
+  }
+
+  const points: Hex[] = [];
+  for (let candidateIndex = 0; candidateIndex < params.candidateCount; candidateIndex += 1) {
+    const randomScalar = params.randomness?.[candidateIndex] === undefined
+      ? scalarFromPrivateKey(bytesToPrefixedHex(secp256k1.utils.randomPrivateKey()), "randomness")
+      : scalarFromPrivateKey(normalizeHex(params.randomness[candidateIndex]!), `randomness[${candidateIndex}]`);
+    const c1 = secp256k1.ProjectivePoint.BASE.multiply(randomScalar);
+    const sharedSecret = publicKeyPoint.multiply(randomScalar);
+    const c2 = candidateIndex === params.selectedIndex
+      ? sharedSecret.add(secp256k1.ProjectivePoint.BASE)
+      : sharedSecret;
+    points.push(pointToHex(c1), pointToHex(c2));
+  }
+
+  return {
+    scheme: BALLOT_CIPHERTEXT_SCHEME,
+    electionPublicKeyHash: hashElectionPublicKey(electionPublicKey),
+    points,
+  };
+}
+
+export function decryptBallotSelection(params: {
+  privateKey: Hex;
+  ciphertext: BallotCiphertextV1;
+}): readonly number[] {
+  const privateScalar = scalarFromPrivateKey(normalizeHex(params.privateKey));
+  const publicKeyHash = hashElectionPublicKey(deriveElectionPublicKey(params.privateKey));
+  const ciphertext = validateCiphertext(params.ciphertext);
+  assert.equal(
+    ciphertext.electionPublicKeyHash,
+    publicKeyHash,
+    "ciphertext was encrypted for a different public key",
+  );
+
+  return decryptCiphertextCounts({
+    privateScalar,
+    ciphertext,
+    maxCount: 1,
+  });
+}
+
+export function aggregateBallotCiphertexts(
+  ciphertexts: readonly BallotCiphertextV1[],
+): BallotCiphertextV1 {
+  assert.equal(ciphertexts.length > 0, true, "at least one ciphertext is required");
+  const normalizedCiphertexts = ciphertexts.map(validateCiphertext);
+  const first = normalizedCiphertexts[0]!;
+  const candidateCount = first.points.length / 2;
+  const aggregatedPoints: Hex[] = [];
+
+  for (const ciphertext of normalizedCiphertexts) {
+    assert.equal(
+      ciphertext.electionPublicKeyHash,
+      first.electionPublicKeyHash,
+      "all ciphertexts must use the same election public key",
+    );
+    assert.equal(
+      ciphertext.points.length,
+      first.points.length,
+      "all ciphertexts must have the same candidate count",
+    );
+  }
+
+  for (let pairIndex = 0; pairIndex < candidateCount; pairIndex += 1) {
+    let c1 = pointFromHex(first.points[pairIndex * 2]!, `ciphertext[0].points[${pairIndex * 2}]`);
+    let c2 = pointFromHex(first.points[pairIndex * 2 + 1]!, `ciphertext[0].points[${pairIndex * 2 + 1}]`);
+
+    for (let ciphertextIndex = 1; ciphertextIndex < normalizedCiphertexts.length; ciphertextIndex += 1) {
+      const ciphertext = normalizedCiphertexts[ciphertextIndex]!;
+      c1 = c1.add(pointFromHex(ciphertext.points[pairIndex * 2]!, `ciphertext[${ciphertextIndex}].points[${pairIndex * 2}]`));
+      c2 = c2.add(pointFromHex(ciphertext.points[pairIndex * 2 + 1]!, `ciphertext[${ciphertextIndex}].points[${pairIndex * 2 + 1}]`));
+    }
+
+    aggregatedPoints.push(pointToHex(c1), pointToHex(c2));
+  }
+
+  return {
+    scheme: BALLOT_CIPHERTEXT_SCHEME,
+    electionPublicKeyHash: first.electionPublicKeyHash,
+    points: aggregatedPoints,
+  };
+}
+
+export function decryptAggregatedTally(params: {
+  privateKey: Hex;
+  ciphertext: BallotCiphertextV1;
+  maxVotes: number;
+}): readonly number[] {
+  assert.equal(Number.isInteger(params.maxVotes), true, "maxVotes must be an integer");
+  assert.equal(params.maxVotes >= 0, true, "maxVotes cannot be negative");
+  const privateScalar = scalarFromPrivateKey(normalizeHex(params.privateKey));
+  const publicKeyHash = hashElectionPublicKey(deriveElectionPublicKey(params.privateKey));
+  const ciphertext = validateCiphertext(params.ciphertext);
+  assert.equal(
+    ciphertext.electionPublicKeyHash,
+    publicKeyHash,
+    "ciphertext was encrypted for a different public key",
+  );
+
+  return decryptCiphertextCounts({
+    privateScalar,
+    ciphertext,
+    maxCount: params.maxVotes,
+  });
+}
+
+function validateCiphertext(input: BallotCiphertextV1): BallotCiphertextV1 {
+  exactKeys(
+    input as unknown as Record<string, unknown>,
+    ["scheme", "electionPublicKeyHash", "points"],
+    "ciphertext",
+  );
+  assert.equal(
+    input.scheme,
+    BALLOT_CIPHERTEXT_SCHEME,
+    "unsupported ciphertext scheme",
+  );
+  assertBytes32(input.electionPublicKeyHash, "electionPublicKeyHash");
+  assert.equal(
+    Array.isArray(input.points) && input.points.length >= 4 && input.points.length % 2 === 0,
+    true,
+    "ciphertext.points must contain c1/c2 pairs for at least two candidates",
+  );
+  for (const [index, point] of input.points.entries()) {
+    assertCompressedPointHex(point, `ciphertext.points[${index}]`);
+  }
+
+  return {
+    scheme: BALLOT_CIPHERTEXT_SCHEME,
+    electionPublicKeyHash: normalizeBytes32(input.electionPublicKeyHash),
+    points: input.points.map(normalizeHex),
+  };
+}
+
+function decryptCiphertextCounts(params: {
+  privateScalar: bigint;
+  ciphertext: BallotCiphertextV1;
+  maxCount: number;
+}): readonly number[] {
+  const lookup = new Map<string, number>();
+  lookup.set("zero", 0);
+  for (let count = 1; count <= params.maxCount; count += 1) {
+    lookup.set(
+      pointToHex(secp256k1.ProjectivePoint.BASE.multiply(BigInt(count))),
+      count,
+    );
+  }
+
+  const counts: number[] = [];
+  for (let index = 0; index < params.ciphertext.points.length; index += 2) {
+    const c1 = pointFromHex(params.ciphertext.points[index]!, `ciphertext.points[${index}]`);
+    const c2 = pointFromHex(params.ciphertext.points[index + 1]!, `ciphertext.points[${index + 1}]`);
+    const messagePoint = c2.subtract(c1.multiply(params.privateScalar));
+    const count = messagePoint.equals(secp256k1.ProjectivePoint.ZERO)
+      ? lookup.get("zero")
+      : lookup.get(pointToHex(messagePoint));
+    assert.notEqual(count, undefined, "ciphertext does not decrypt to an expected small tally value");
+    counts.push(count as number);
+  }
+
+  return counts;
+}
 
 export function validateVotePackage(input: VotePackageV1): VotePackageV1 {
   exactKeys(
@@ -131,20 +388,7 @@ export function validateVotePackage(input: VotePackageV1): VotePackageV1 {
     ["scheme", "electionPublicKeyHash", "points"],
     "ciphertext",
   );
-  assert.equal(
-    input.ciphertext.scheme,
-    BALLOT_CIPHERTEXT_SCHEME,
-    "unsupported ciphertext scheme",
-  );
-  assertBytes32(input.ciphertext.electionPublicKeyHash, "electionPublicKeyHash");
-  assert.equal(
-    Array.isArray(input.ciphertext.points) && input.ciphertext.points.length > 0,
-    true,
-    "ciphertext.points must contain at least one point",
-  );
-  for (const [index, point] of input.ciphertext.points.entries()) {
-    assertHexBytes(point, `ciphertext.points[${index}]`);
-  }
+  const ciphertext = validateCiphertext(input.ciphertext);
 
   exactKeys(
     input.ballotValidityProof as unknown as Record<string, unknown>,
@@ -164,11 +408,7 @@ export function validateVotePackage(input: VotePackageV1): VotePackageV1 {
     electionId: normalizeBytes32(input.electionId),
     candidateListHash: normalizeBytes32(input.candidateListHash),
     ballotNullifier: normalizeBytes32(input.ballotNullifier),
-    ciphertext: {
-      scheme: BALLOT_CIPHERTEXT_SCHEME,
-      electionPublicKeyHash: normalizeBytes32(input.ciphertext.electionPublicKeyHash),
-      points: input.ciphertext.points.map(normalizeHex),
-    },
+    ciphertext,
     ballotValidityProof: {
       system: BALLOT_PROOF_SYSTEM,
       proof: normalizeHex(input.ballotValidityProof.proof),

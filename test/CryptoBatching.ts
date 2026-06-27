@@ -11,7 +11,9 @@ import {
   VOTE_PACKAGE_VERSION,
   buildBatchManifest,
   buildInclusionReceipt,
+  createElectionKeyPair,
   digestVotePackage,
+  encryptBallotSelection,
   validateVotePackage,
   verifyMerkleProof,
 } from "../packages/crypto/src/index.js";
@@ -20,7 +22,9 @@ const hash = (value: string) => keccak256(stringToHex(value));
 
 const electionId = hash("test-election");
 const candidateListHash = hash("candidate-list");
-const electionPublicKeyHash = hash("election-public-key");
+const electionKey = createElectionKeyPair(
+  `0x${"01".padStart(64, "0")}`,
+);
 
 function votePackage(label: string): VotePackageV1 {
   return {
@@ -28,11 +32,16 @@ function votePackage(label: string): VotePackageV1 {
     electionId,
     candidateListHash,
     ballotNullifier: hash(`ballot-nullifier-${label}`),
-    ciphertext: {
-      scheme: BALLOT_CIPHERTEXT_SCHEME,
-      electionPublicKeyHash,
-      points: [`0x${"11".repeat(33)}`, `0x${"22".repeat(33)}`],
-    },
+    ciphertext: encryptBallotSelection({
+      electionPublicKey: electionKey.publicKey,
+      candidateCount: 3,
+      selectedIndex: label.length % 3,
+      randomness: [
+        `0x${"11".padStart(64, "0")}`,
+        `0x${"12".padStart(64, "0")}`,
+        `0x${"13".padStart(64, "0")}`,
+      ],
+    }),
     ballotValidityProof: {
       system: BALLOT_PROOF_SYSTEM,
       proof: `0x${"aa".repeat(192)}`,

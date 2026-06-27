@@ -19,8 +19,8 @@
 
 ## Milestone 3 - Ballot cryptography
 
-- [ ] Specify the encrypted vote vector and curve
-- [ ] Implement client-side EC-ElGamal encryption
+- [x] Specify the encrypted vote vector and curve
+- [x] Implement client-side EC-ElGamal encryption
 - [ ] Build a real ballot-validity circuit
 - [ ] Bind election ID, candidate-list hash, ciphertext, and nullifier
 - [ ] Add malformed-ballot and duplicate-nullifier tests
