@@ -365,6 +365,49 @@ function decryptCiphertextCounts(params: {
   return counts;
 }
 
+export function digestBallotCiphertext(input: BallotCiphertextV1): Bytes32 {
+  const ciphertext = validateCiphertext(input);
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 ciphertextScheme, bytes32 electionPublicKeyHash, bytes[] ciphertextPoints",
+      ),
+      [
+        domainHash("SVB_BALLOT_CIPHERTEXT_V1"),
+        domainHash(ciphertext.scheme),
+        ciphertext.electionPublicKeyHash,
+        [...ciphertext.points],
+      ],
+    ),
+  );
+}
+
+export function computeBallotPublicInputsHash(params: {
+  electionId: Bytes32;
+  candidateListHash: Bytes32;
+  ballotNullifier: Bytes32;
+  ciphertext: BallotCiphertextV1;
+}): Bytes32 {
+  assertBytes32(params.electionId, "electionId");
+  assertBytes32(params.candidateListHash, "candidateListHash");
+  assertBytes32(params.ballotNullifier, "ballotNullifier");
+
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 electionId, bytes32 candidateListHash, bytes32 ballotNullifier, bytes32 ciphertextDigest",
+      ),
+      [
+        domainHash("SVB_BALLOT_PUBLIC_INPUTS_V1"),
+        normalizeBytes32(params.electionId),
+        normalizeBytes32(params.candidateListHash),
+        normalizeBytes32(params.ballotNullifier),
+        digestBallotCiphertext(params.ciphertext),
+      ],
+    ),
+  );
+}
+
 export function validateVotePackage(input: VotePackageV1): VotePackageV1 {
   exactKeys(
     input as unknown as Record<string, unknown>,
@@ -402,6 +445,18 @@ export function validateVotePackage(input: VotePackageV1): VotePackageV1 {
   );
   assertHexBytes(input.ballotValidityProof.proof, "ballotValidityProof.proof");
   assertBytes32(input.ballotValidityProof.publicInputsHash, "publicInputsHash");
+
+  const expectedPublicInputsHash = computeBallotPublicInputsHash({
+    electionId: input.electionId,
+    candidateListHash: input.candidateListHash,
+    ballotNullifier: input.ballotNullifier,
+    ciphertext,
+  });
+  assert.equal(
+    normalizeBytes32(input.ballotValidityProof.publicInputsHash),
+    expectedPublicInputsHash,
+    "ballot proof public inputs do not match vote package",
+  );
 
   return {
     version: VOTE_PACKAGE_VERSION,

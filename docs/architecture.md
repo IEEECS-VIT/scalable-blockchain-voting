@@ -67,9 +67,9 @@ is submitted to `BatchCommitment`. Vote packages intentionally exclude
 timestamps, device IDs, client versions, and other fingerprinting metadata.
 
 The package currently provides secp256k1 EC-ElGamal-style encrypted vote
-vectors, deterministic public-key hashes, local demo decryption, homomorphic
-aggregation helpers, deterministic hashes, Merkle roots, inclusion receipts,
-and duplicate-nullifier checks.
+vectors, deterministic public-key hashes, ballot-proof public-input hashing,
+local demo decryption, homomorphic aggregation helpers, deterministic hashes,
+Merkle roots, inclusion receipts, and duplicate-nullifier checks.
 
 It still does not prove ballot validity, prove batch validity, or perform
 threshold decryption. Those pieces need real circuits and verifier contracts.

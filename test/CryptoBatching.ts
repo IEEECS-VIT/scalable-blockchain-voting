@@ -11,6 +11,7 @@ import {
   VOTE_PACKAGE_VERSION,
   buildBatchManifest,
   buildInclusionReceipt,
+  computeBallotPublicInputsHash,
   createElectionKeyPair,
   digestVotePackage,
   encryptBallotSelection,
@@ -27,25 +28,33 @@ const electionKey = createElectionKeyPair(
 );
 
 function votePackage(label: string): VotePackageV1 {
+  const ballotNullifier = hash(`ballot-nullifier-${label}`);
+  const ciphertext = encryptBallotSelection({
+    electionPublicKey: electionKey.publicKey,
+    candidateCount: 3,
+    selectedIndex: label.length % 3,
+    randomness: [
+      `0x${"11".padStart(64, "0")}`,
+      `0x${"12".padStart(64, "0")}`,
+      `0x${"13".padStart(64, "0")}`,
+    ],
+  });
+
   return {
     version: VOTE_PACKAGE_VERSION,
     electionId,
     candidateListHash,
-    ballotNullifier: hash(`ballot-nullifier-${label}`),
-    ciphertext: encryptBallotSelection({
-      electionPublicKey: electionKey.publicKey,
-      candidateCount: 3,
-      selectedIndex: label.length % 3,
-      randomness: [
-        `0x${"11".padStart(64, "0")}`,
-        `0x${"12".padStart(64, "0")}`,
-        `0x${"13".padStart(64, "0")}`,
-      ],
-    }),
+    ballotNullifier,
+    ciphertext,
     ballotValidityProof: {
       system: BALLOT_PROOF_SYSTEM,
       proof: `0x${"aa".repeat(192)}`,
-      publicInputsHash: hash(`public-inputs-${label}`),
+      publicInputsHash: computeBallotPublicInputsHash({
+        electionId,
+        candidateListHash,
+        ballotNullifier,
+        ciphertext,
+      }),
     },
   };
 }
@@ -74,6 +83,44 @@ describe("crypto batching utilities", function () {
         ...first,
         clientVersion: "demo-browser",
       } as unknown as VotePackageV1),
+    );
+  });
+
+  it("binds proof public inputs to election, nullifier, and ciphertext", function () {
+    const original = votePackage("public-input-binding");
+    const changedNullifier = {
+      ...original,
+      ballotNullifier: hash("changed-nullifier"),
+    };
+    const changedCiphertext = {
+      ...original,
+      ciphertext: encryptBallotSelection({
+        electionPublicKey: electionKey.publicKey,
+        candidateCount: 3,
+        selectedIndex: 2,
+        randomness: [
+          `0x${"21".padStart(64, "0")}`,
+          `0x${"22".padStart(64, "0")}`,
+          `0x${"23".padStart(64, "0")}`,
+        ],
+      }),
+    };
+
+    assert.throws(() => validateVotePackage(changedNullifier));
+    assert.throws(() => validateVotePackage(changedCiphertext));
+    assert.notEqual(
+      computeBallotPublicInputsHash({
+        electionId,
+        candidateListHash,
+        ballotNullifier: original.ballotNullifier,
+        ciphertext: original.ciphertext,
+      }),
+      computeBallotPublicInputsHash({
+        electionId: hash("different-election"),
+        candidateListHash,
+        ballotNullifier: original.ballotNullifier,
+        ciphertext: original.ciphertext,
+      }),
     );
   });
 
