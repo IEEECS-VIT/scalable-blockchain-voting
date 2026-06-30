@@ -7,6 +7,8 @@ Implemented now:
 
 - secp256k1 EC-ElGamal-style encrypted vote vectors;
 - deterministic public-key hashing;
+- ballot-proof public-input hashing bound to election ID, candidate list,
+  nullifier, and ciphertext;
 - local demo decryption and homomorphic aggregation helpers;
 - strict `VotePackageV1` validation;
 - no timestamp, device, browser, or client-version metadata in stored vote

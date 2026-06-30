@@ -22,8 +22,8 @@
 - [x] Specify the encrypted vote vector and curve
 - [x] Implement client-side EC-ElGamal encryption
 - [ ] Build a real ballot-validity circuit
-- [ ] Bind election ID, candidate-list hash, ciphertext, and nullifier
-- [ ] Add malformed-ballot and duplicate-nullifier tests
+- [x] Bind election ID, candidate-list hash, ciphertext, and nullifier
+- [x] Add malformed-ballot and duplicate-nullifier tests
 
 ## Milestone 4 - Storage and batching
 
