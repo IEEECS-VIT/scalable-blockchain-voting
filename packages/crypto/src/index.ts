@@ -4,6 +4,7 @@ import { secp256k1 } from "@noble/curves/secp256k1";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import {
   encodeAbiParameters,
+  isAddress,
   isHex,
   keccak256,
   parseAbiParameters,
@@ -13,6 +14,7 @@ import {
 
 export type Hex = `0x${string}`;
 export type Bytes32 = Hex;
+export type Address = Hex;
 
 export const VOTE_PACKAGE_VERSION = 1 as const;
 export const BATCH_MANIFEST_VERSION = 1 as const;
@@ -103,6 +105,10 @@ function assertBytes32(value: string, label: string): asserts value is Bytes32 {
   );
 }
 
+function assertAddress(value: string, label: string): asserts value is Address {
+  assert.equal(isAddress(value), true, `${label} must be an Ethereum address`);
+}
+
 function assertHexBytes(value: string, label: string): asserts value is Hex {
   assert.equal(
     isHex(value, { strict: true }) && value.length >= 4,
@@ -128,6 +134,9 @@ const normalizeBytes32 = (value: Bytes32): Bytes32 =>
   value.toLowerCase() as Bytes32;
 
 const normalizeHex = (value: Hex): Hex => value.toLowerCase() as Hex;
+
+const normalizeAddress = (value: Address): Address =>
+  value.toLowerCase() as Address;
 
 const stripHexPrefix = (value: Hex): string => value.slice(2);
 
@@ -175,6 +184,30 @@ export function hashElectionPublicKey(publicKey: Hex): Bytes32 {
     encodeAbiParameters(
       parseAbiParameters("bytes32 domain, bytes publicKey"),
       [domainHash("SVB_ELECTION_PUBLIC_KEY_V1"), publicKey],
+    ),
+  );
+}
+
+export function computeRegistrationPublicInputsHash(params: {
+  electionId: Bytes32;
+  identityNullifier: Bytes32;
+  votingKey: Address;
+}): Bytes32 {
+  assertBytes32(params.electionId, "electionId");
+  assertBytes32(params.identityNullifier, "identityNullifier");
+  assertAddress(params.votingKey, "votingKey");
+
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 electionId, bytes32 identityNullifier, address votingKey",
+      ),
+      [
+        domainHash("SVB_REGISTRATION_PUBLIC_INPUTS_V1"),
+        normalizeBytes32(params.electionId),
+        normalizeBytes32(params.identityNullifier),
+        normalizeAddress(params.votingKey),
+      ],
     ),
   );
 }

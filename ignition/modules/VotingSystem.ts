@@ -38,7 +38,11 @@ export default buildModule("VotingSystem", (m) => {
     votingStartsAt,
     votingEndsAt,
   ]);
-  const voterRegistry = m.contract("VoterRegistry", [electionId, owner]);
+  const voterRegistry = m.contract("VoterRegistry", [
+    electionId,
+    owner,
+    zeroAddress,
+  ]);
   const votingContract = m.contract("VotingContract", [
     electionId,
     voterRegistry,

@@ -31,6 +31,21 @@ election-scoped identity nullifier and an ephemeral voting address. It does not
 verify Anon Aadhaar yet, and it must not be described as anonymous eligibility
 proof verification.
 
+It also exposes a proof-based registration seam through
+`IEligibilityVerifier`. The verifier statement is:
+
+- the registrant is eligible for this election;
+- the proof is bound to this `electionId`;
+- the proof authorizes this election-scoped `identityNullifier`; and
+- the proof binds that nullifier to one ephemeral `votingKey`.
+
+The current repository includes only a test verifier for this seam. It is not
+an Anon Aadhaar verifier.
+
+The TypeScript crypto package mirrors the registry's public-input hash so the
+future frontend or Anon Aadhaar adapter can build the exact same proof signal
+off-chain before calling `registerWithProof`.
+
 Registration should be submitted by a relayer or registrar. An identifiable
 wallet should not mint a public credential and register its voting key in the
 same transaction.
@@ -84,7 +99,7 @@ publication remains intentionally unavailable.
 
 | Capability | Current status | Required stronger version |
 | --- | --- | --- |
-| Eligibility | Trusted demo registrar | Audited anonymous eligibility verifier |
+| Eligibility | Trusted demo registrar plus verifier interface seam | Audited anonymous eligibility verifier |
 | Biometrics | Not implemented | Optional regulated authentication gateway |
 | Ballot encryption | secp256k1 EC-ElGamal-style encrypted vector | Audited election-crypto choice with proof-compatible encoding |
 | Ballot proof | Not implemented | Real circuit proving one valid selection |

@@ -11,9 +11,10 @@
 
 ## Milestone 2 - Registration
 
-- [ ] Define the exact anonymous eligibility statement
-- [ ] Integrate Anon Aadhaar test mode behind a verifier interface
-- [ ] Bind the election ID and ephemeral voting key into the proof signal
+- [x] Define the exact anonymous eligibility statement
+- [x] Add an eligibility-verifier interface seam
+- [ ] Integrate Anon Aadhaar test mode behind the verifier interface
+- [x] Bind the election ID and ephemeral voting key into the proof signal
 - [ ] Submit registration through a relayer
 - [ ] Remove the trusted registrar path when proof verification is ready
 
