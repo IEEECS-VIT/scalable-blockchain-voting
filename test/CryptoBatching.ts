@@ -15,6 +15,8 @@ import {
   createElectionKeyPair,
   digestVotePackage,
   encryptBallotSelection,
+  parseVotePackageJson,
+  serializeVotePackage,
   validateVotePackage,
   verifyMerkleProof,
 } from "../packages/crypto/src/index.js";
@@ -84,6 +86,18 @@ describe("crypto batching utilities", function () {
         clientVersion: "demo-browser",
       } as unknown as VotePackageV1),
     );
+  });
+
+  it("serializes vote packages to canonical JSON for content storage", function () {
+    const first = votePackage("canonical-json");
+    const serialized = serializeVotePackage(first);
+    const parsed = parseVotePackageJson(serialized);
+
+    assert.equal(serialized.endsWith("\n"), true);
+    assert.equal(serializeVotePackage(parsed), serialized);
+    assert.equal(digestVotePackage(parsed), digestVotePackage(first));
+    assert.equal(serialized.includes("timestamp"), false);
+    assert.equal(serialized.includes("clientVersion"), false);
   });
 
   it("binds proof public inputs to election, nullifier, and ciphertext", function () {

@@ -11,6 +11,7 @@ Implemented now:
   nullifier, and ciphertext;
 - registration public-input hashing bound to election ID, identity nullifier,
   and ephemeral voting key;
+- canonical vote-package JSON serialization for content-addressed storage;
 - local demo decryption and homomorphic aggregation helpers;
 - strict `VotePackageV1` validation;
 - no timestamp, device, browser, or client-version metadata in stored vote
@@ -25,7 +26,7 @@ Not implemented yet:
 
 - real ballot-validity proof generation;
 - real batch-validity/nullifier-state circuit; or
-- IPFS upload/download.
+- IPFS download and persistence monitoring.
 
 The current code is intentionally a serialization and commitment layer. It is
 the foundation that real proof systems plug into next; it is not a replacement

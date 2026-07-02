@@ -30,7 +30,7 @@
 
 - [x] Define a minimal vote-package schema without timestamps or client
   fingerprinting fields
-- [ ] Upload encrypted packages to IPFS
+- [x] Upload encrypted packages to IPFS
 - [x] Build deterministic batch manifests and inclusion receipts
 - [ ] Implement a batch-validity/nullifier-state-transition circuit
 - [ ] Add data-availability failure handling

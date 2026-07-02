@@ -8,9 +8,10 @@
   "scripts": {
     "clean": "hardhat clean",
     "compile": "hardhat compile",
-    "test:crypto": "node --test --import tsx test/BallotEncryption.ts test/CryptoBatching.ts",
+    "test:crypto": "node --test --import tsx test/BallotEncryption.ts test/CryptoBatching.ts test/IpfsUploadScript.ts",
     "test": "hardhat test",
     "typecheck": "tsc --noEmit",
+    "upload:vote-package": "tsx scripts/upload_vote_package.ts",
     "deploy:local": "hardhat ignition deploy ignition/modules/VotingSystem.ts",
     "deploy:amoy": "hardhat ignition deploy ignition/modules/VotingSystem.ts --network amoy"
   },
