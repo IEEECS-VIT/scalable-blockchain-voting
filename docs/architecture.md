@@ -84,7 +84,8 @@ timestamps, device IDs, client versions, and other fingerprinting metadata.
 The package currently provides secp256k1 EC-ElGamal-style encrypted vote
 vectors, deterministic public-key hashes, ballot-proof public-input hashing,
 local demo decryption, homomorphic aggregation helpers, deterministic hashes,
-Merkle roots, inclusion receipts, and duplicate-nullifier checks.
+canonical vote-package JSON, Merkle roots, inclusion receipts, and
+duplicate-nullifier checks.
 
 It still does not prove ballot validity, prove batch validity, or perform
 threshold decryption. Those pieces need real circuits and verifier contracts.
@@ -107,4 +108,5 @@ publication remains intentionally unavailable.
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
 | Threshold tally | Not implemented | Partial decryptions with correctness proofs |
 | Tally verification | Verifier adapter only | Generated and audited verifier contract |
-| Storage | Not implemented | Availability and persistence strategy |
+| Data availability | Not implemented | Availability and persistence strategy |
+| Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |

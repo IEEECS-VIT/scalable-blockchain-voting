@@ -81,6 +81,14 @@ export type PackageInclusionReceipt = {
   proof: readonly MerkleProofStep[];
 };
 
+type CanonicalJson =
+  | null
+  | boolean
+  | number
+  | string
+  | readonly CanonicalJson[]
+  | { readonly [key: string]: CanonicalJson };
+
 const SECP256K1_ORDER = secp256k1.CURVE.n;
 
 const exactKeys = <T extends Record<string, unknown>>(
@@ -142,6 +150,35 @@ const stripHexPrefix = (value: Hex): string => value.slice(2);
 
 const bytesToPrefixedHex = (value: Uint8Array): Hex =>
   `0x${bytesToHex(value)}`;
+
+function canonicalizeJson(value: unknown): CanonicalJson {
+  if (
+    value === null ||
+    typeof value === "boolean" ||
+    typeof value === "string"
+  ) {
+    return value;
+  }
+  if (typeof value === "number") {
+    assert.equal(Number.isFinite(value), true, "JSON number must be finite");
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(canonicalizeJson);
+  }
+  if (typeof value === "object" && value !== null) {
+    const sortedEntries = Object.entries(value)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entryValue]) => [key, canonicalizeJson(entryValue)] as const);
+    return Object.fromEntries(sortedEntries);
+  }
+  throw new TypeError(`unsupported JSON value type: ${typeof value}`);
+}
+
+function canonicalStringify(value: unknown): string {
+  return JSON.stringify(canonicalizeJson(value));
+}
 
 function scalarFromPrivateKey(privateKey: Hex, label = "privateKey"): bigint {
   assertBytes32(privateKey, label);
@@ -503,6 +540,14 @@ export function validateVotePackage(input: VotePackageV1): VotePackageV1 {
       publicInputsHash: normalizeBytes32(input.ballotValidityProof.publicInputsHash),
     },
   };
+}
+
+export function serializeVotePackage(input: VotePackageV1): string {
+  return `${canonicalStringify(validateVotePackage(input))}\n`;
+}
+
+export function parseVotePackageJson(json: string): VotePackageV1 {
+  return validateVotePackage(JSON.parse(json) as VotePackageV1);
 }
 
 export function digestVotePackage(input: VotePackageV1): Bytes32 {
