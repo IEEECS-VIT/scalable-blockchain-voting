@@ -84,8 +84,9 @@ timestamps, device IDs, client versions, and other fingerprinting metadata.
 The package currently provides secp256k1 EC-ElGamal-style encrypted vote
 vectors, deterministic public-key hashes, ballot-proof public-input hashing,
 local demo decryption, homomorphic aggregation helpers, deterministic hashes,
-canonical vote-package JSON, Merkle roots, inclusion receipts, and
-duplicate-nullifier checks.
+canonical vote-package JSON, Merkle roots, inclusion receipts,
+duplicate-nullifier checks, batch public-input hashing, and
+data-availability preflight checks.
 
 It still does not prove ballot validity, prove batch validity, or perform
 threshold decryption. Those pieces need real circuits and verifier contracts.
@@ -104,9 +105,9 @@ publication remains intentionally unavailable.
 | Biometrics | Not implemented | Optional regulated authentication gateway |
 | Ballot encryption | secp256k1 EC-ElGamal-style encrypted vector | Audited election-crypto choice with proof-compatible encoding |
 | Ballot proof | Not implemented | Real circuit proving one valid selection |
-| Batching | Deterministic manifest builder plus trusted root submission | Batch-validity and state-transition proof |
+| Batching | Deterministic manifest builder, finalization script, plus trusted root submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
 | Threshold tally | Not implemented | Partial decryptions with correctness proofs |
 | Tally verification | Verifier adapter only | Generated and audited verifier contract |
-| Data availability | Not implemented | Availability and persistence strategy |
+| Data availability | Local/IPFS-gateway preflight script | Multi-provider persistence strategy |
 | Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |

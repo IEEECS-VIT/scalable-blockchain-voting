@@ -12,6 +12,7 @@ import {
   buildBatchManifest,
   buildInclusionReceipt,
   computeBallotPublicInputsHash,
+  computeBatchPublicInputsHash,
   createElectionKeyPair,
   digestVotePackage,
   encryptBallotSelection,
@@ -163,7 +164,46 @@ describe("crypto batching utilities", function () {
     assert.equal(firstManifest.cidMerkleRoot, secondManifest.cidMerkleRoot);
     assert.equal(firstManifest.nullifierRoot, secondManifest.nullifierRoot);
     assert.equal(firstManifest.manifestDigest, secondManifest.manifestDigest);
+    assert.equal(firstManifest.batchPublicInputsHash, secondManifest.batchPublicInputsHash);
     assert.equal(firstManifest.batchSize, 3n);
+  });
+
+  it("binds batch proof public inputs to roots and package digests", function () {
+    const accumulator = new NullifierAccumulator();
+    const manifest = buildBatchManifest(
+      electionId,
+      zeroHash,
+      [
+        { contentId: "ipfs://bafy-demo-a", package: votePackage("a") },
+        { contentId: "ipfs://bafy-demo-b", package: votePackage("b") },
+      ],
+      accumulator,
+    );
+
+    assert.equal(
+      manifest.batchPublicInputsHash,
+      computeBatchPublicInputsHash({
+        electionId,
+        previousNullifierRoot: manifest.previousNullifierRoot,
+        nullifierRoot: manifest.nullifierRoot,
+        cidMerkleRoot: manifest.cidMerkleRoot,
+        manifestDigest: manifest.manifestDigest,
+        packageDigests: manifest.packageDigests,
+        ballotNullifiers: manifest.ballotNullifiers,
+      }),
+    );
+    assert.notEqual(
+      manifest.batchPublicInputsHash,
+      computeBatchPublicInputsHash({
+        electionId,
+        previousNullifierRoot: manifest.previousNullifierRoot,
+        nullifierRoot: manifest.nullifierRoot,
+        cidMerkleRoot: manifest.cidMerkleRoot,
+        manifestDigest: hash("tampered-manifest"),
+        packageDigests: manifest.packageDigests,
+        ballotNullifiers: manifest.ballotNullifiers,
+      }),
+    );
   });
 
   it("rejects duplicate nullifiers and enforces accumulator continuity", function () {

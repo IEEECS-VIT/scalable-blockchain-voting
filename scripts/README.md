@@ -18,6 +18,40 @@ default because some sandboxes block localhost listeners:
 RUN_IPFS_UPLOAD_SCRIPT_TEST=1 npm run test:crypto
 ```
 
+`build_batch_manifest.ts` turns uploaded package references into the trusted
+batcher's finalization artifact: the deterministic manifest, inclusion
+receipts, and the exact `BatchCommitment.submitBatch` arguments.
+
+Input shape:
+
+```json
+{
+  "electionId": "0x...",
+  "previousNullifierRoot": "0x...",
+  "knownPreviousNullifiers": [],
+  "packages": [
+    { "contentId": "ipfs://bafy...", "path": "vote-package.json" }
+  ]
+}
+```
+
+Run:
+
+```bash
+npm run build:batch -- path/to/batch-input.json
+```
+
+`check_data_availability.ts` is a batcher preflight. It validates that the
+local package files are readable, canonical, election-matched, and optionally
+match expected digests. If `CHECK_IPFS_FETCH=1` is set, it also fetches the
+`ipfs://...` content through `IPFS_GATEWAY_URL` and compares the fetched digest
+with the local package digest.
+
+```bash
+npm run check:data -- path/to/batch-input.json
+CHECK_IPFS_FETCH=1 IPFS_GATEWAY_URL=https://ipfs.io/ipfs/ npm run check:data -- path/to/batch-input.json
+```
+
 Batch construction and tally scripts should only be added after their schemas
 and proof statements are fixed. Empty or fake scripts would make the demo look
 more complete than it is.
