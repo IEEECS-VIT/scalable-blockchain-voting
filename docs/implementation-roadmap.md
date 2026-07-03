@@ -33,7 +33,7 @@
 - [x] Upload encrypted packages to IPFS
 - [x] Build deterministic batch manifests and inclusion receipts
 - [ ] Implement a batch-validity/nullifier-state-transition circuit
-- [ ] Add data-availability failure handling
+- [x] Add data-availability preflight failure handling
 
 ## Milestone 5 - Tally
 

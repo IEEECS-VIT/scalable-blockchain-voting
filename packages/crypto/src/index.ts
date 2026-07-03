@@ -62,6 +62,7 @@ export type BatchManifestV1 = {
   nullifierRoot: Bytes32;
   cidMerkleRoot: Bytes32;
   manifestDigest: Bytes32;
+  batchPublicInputsHash: Bytes32;
   batchSize: bigint;
   packageDigests: readonly Bytes32[];
   packageLeafHashes: readonly Bytes32[];
@@ -691,6 +692,49 @@ export function nullifierSetRoot(nullifiers: readonly Bytes32[]): Bytes32 {
   );
 }
 
+export function computeBatchPublicInputsHash(params: {
+  electionId: Bytes32;
+  previousNullifierRoot: Bytes32;
+  nullifierRoot: Bytes32;
+  cidMerkleRoot: Bytes32;
+  manifestDigest: Bytes32;
+  packageDigests: readonly Bytes32[];
+  ballotNullifiers: readonly Bytes32[];
+}): Bytes32 {
+  assertBytes32(params.electionId, "electionId");
+  assertBytes32(params.previousNullifierRoot, "previousNullifierRoot");
+  assertBytes32(params.nullifierRoot, "nullifierRoot");
+  assertBytes32(params.cidMerkleRoot, "cidMerkleRoot");
+  assertBytes32(params.manifestDigest, "manifestDigest");
+
+  const packageDigests = params.packageDigests.map((digest, index) => {
+    assertBytes32(digest, `packageDigests[${index}]`);
+    return normalizeBytes32(digest);
+  });
+  const ballotNullifiers = params.ballotNullifiers.map((nullifier, index) => {
+    assertBytes32(nullifier, `ballotNullifiers[${index}]`);
+    return normalizeBytes32(nullifier);
+  });
+
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 electionId, bytes32 previousNullifierRoot, bytes32 nullifierRoot, bytes32 cidMerkleRoot, bytes32 manifestDigest, bytes32[] packageDigests, bytes32[] ballotNullifiers",
+      ),
+      [
+        domainHash("SVB_BATCH_PUBLIC_INPUTS_V1"),
+        normalizeBytes32(params.electionId),
+        normalizeBytes32(params.previousNullifierRoot),
+        normalizeBytes32(params.nullifierRoot),
+        normalizeBytes32(params.cidMerkleRoot),
+        normalizeBytes32(params.manifestDigest),
+        packageDigests,
+        ballotNullifiers,
+      ],
+    ),
+  );
+}
+
 export class NullifierAccumulator {
   readonly #seen = new Set<Bytes32>();
 
@@ -783,6 +827,15 @@ export function buildBatchManifest(
       ],
     ),
   );
+  const batchPublicInputsHash = computeBatchPublicInputsHash({
+    electionId: normalizedElectionId,
+    previousNullifierRoot: normalizeBytes32(previousNullifierRoot),
+    nullifierRoot,
+    cidMerkleRoot,
+    manifestDigest,
+    packageDigests,
+    ballotNullifiers: batchNullifiers,
+  });
 
   return {
     version: BATCH_MANIFEST_VERSION,
@@ -791,6 +844,7 @@ export function buildBatchManifest(
     nullifierRoot,
     cidMerkleRoot,
     manifestDigest,
+    batchPublicInputsHash,
     batchSize: BigInt(sortedPackages.length),
     packageDigests,
     packageLeafHashes,

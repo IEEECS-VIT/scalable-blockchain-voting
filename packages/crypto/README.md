@@ -12,6 +12,7 @@ Implemented now:
 - registration public-input hashing bound to election ID, identity nullifier,
   and ephemeral voting key;
 - canonical vote-package JSON serialization for content-addressed storage;
+- batch public-input hashing for the future validity/state-transition circuit;
 - local demo decryption and homomorphic aggregation helpers;
 - strict `VotePackageV1` validation;
 - no timestamp, device, browser, or client-version metadata in stored vote

@@ -11,3 +11,7 @@ Planned circuits:
 
 No circuit is implemented yet. A hash placeholder must not be presented as a
 SNARK.
+
+The TypeScript batching utilities output `batchPublicInputsHash`, which is the
+intended public-input binding for the future batch-validity/state-transition
+circuit. This hash fixes the statement shape; it is not a proof.
