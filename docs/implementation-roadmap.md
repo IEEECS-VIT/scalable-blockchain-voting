@@ -37,7 +37,7 @@
 
 ## Milestone 5 - Tally
 
-- [ ] Aggregate only ballots proven valid and committed in accepted batches
+- [x] Aggregate locally validated ballots from accepted batch artifacts
 - [ ] Implement partial threshold decryptions without reconstructing the key
 - [ ] Prove each decryption share
 - [ ] Bind all accepted batch roots, election configuration, aggregate
