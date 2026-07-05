@@ -52,6 +52,14 @@ npm run check:data -- path/to/batch-input.json
 CHECK_IPFS_FETCH=1 IPFS_GATEWAY_URL=https://ipfs.io/ipfs/ npm run check:data -- path/to/batch-input.json
 ```
 
+`build_tally_input.ts` validates accepted batch artifacts against their package
+files, aggregates only those encrypted ballots, and outputs the encrypted tally
+public inputs for the future tally proof.
+
+```bash
+npm run build:tally -- path/to/tally-input.json
+```
+
 Batch construction and tally scripts should only be added after their schemas
 and proof statements are fixed. Empty or fake scripts would make the demo look
 more complete than it is.

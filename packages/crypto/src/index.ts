@@ -453,6 +453,46 @@ export function digestBallotCiphertext(input: BallotCiphertextV1): Bytes32 {
   );
 }
 
+export function computeEncryptedTallyPublicInputsHash(params: {
+  electionId: Bytes32;
+  candidateListHash: Bytes32;
+  electionPublicKeyHash: Bytes32;
+  acceptedBatchPublicInputsHashes: readonly Bytes32[];
+  aggregateCiphertext: BallotCiphertextV1;
+}): Bytes32 {
+  assertBytes32(params.electionId, "electionId");
+  assertBytes32(params.candidateListHash, "candidateListHash");
+  assertBytes32(params.electionPublicKeyHash, "electionPublicKeyHash");
+  const acceptedBatchPublicInputsHashes = params.acceptedBatchPublicInputsHashes.map(
+    (hashValue, index) => {
+      assertBytes32(hashValue, `acceptedBatchPublicInputsHashes[${index}]`);
+      return normalizeBytes32(hashValue);
+    },
+  );
+  const aggregateCiphertext = validateCiphertext(params.aggregateCiphertext);
+  assert.equal(
+    aggregateCiphertext.electionPublicKeyHash,
+    normalizeBytes32(params.electionPublicKeyHash),
+    "aggregate ciphertext key does not match election public key hash",
+  );
+
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 electionId, bytes32 candidateListHash, bytes32 electionPublicKeyHash, bytes32[] acceptedBatchPublicInputsHashes, bytes32 aggregateCiphertextDigest",
+      ),
+      [
+        domainHash("SVB_ENCRYPTED_TALLY_PUBLIC_INPUTS_V1"),
+        normalizeBytes32(params.electionId),
+        normalizeBytes32(params.candidateListHash),
+        normalizeBytes32(params.electionPublicKeyHash),
+        acceptedBatchPublicInputsHashes,
+        digestBallotCiphertext(aggregateCiphertext),
+      ],
+    ),
+  );
+}
+
 export function computeBallotPublicInputsHash(params: {
   electionId: Bytes32;
   candidateListHash: Bytes32;
