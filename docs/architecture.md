@@ -83,19 +83,22 @@ timestamps, device IDs, client versions, and other fingerprinting metadata.
 
 The package currently provides secp256k1 EC-ElGamal-style encrypted vote
 vectors, deterministic public-key hashes, ballot-proof public-input hashing,
-local demo decryption, homomorphic aggregation helpers, deterministic hashes,
+local demo decryption, homomorphic aggregation helpers, threshold share
+generation, DLEQ-checked partial decryption shares, deterministic hashes,
 canonical vote-package JSON, Merkle roots, inclusion receipts,
 duplicate-nullifier checks, batch public-input hashing, encrypted tally input
 aggregation, and data-availability preflight checks.
 
-It still does not prove ballot validity, prove batch validity, or perform
-threshold decryption. Those pieces need real circuits and verifier contracts.
+It still does not prove ballot validity, prove batch validity, or verify a full
+tally statement on-chain. Those pieces need real circuits and verifier
+contracts.
 
 ### `TallyVerifier`
 
 Accepts a tally only after an external verifier contract returns `true` for
-the proof and public-input hash. No verifier is included yet, so verified tally
-publication remains intentionally unavailable.
+the proof and public-input hash. The repository includes only a test mock for
+this seam. It is not a SNARK verifier, so real verified tally publication
+remains intentionally unavailable.
 
 ## Demo versus future production
 
@@ -107,8 +110,8 @@ publication remains intentionally unavailable.
 | Ballot proof | Not implemented | Real circuit proving one valid selection |
 | Batching | Deterministic manifest builder, finalization script, plus trusted root submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
-| Threshold tally | Not implemented | Partial decryptions with correctness proofs |
+| Threshold tally | Local Shamir-style shares plus off-chain DLEQ share proofs | Audited threshold ceremony and verifier-compatible decryption proofs |
 | Encrypted tally aggregation | Local aggregation from accepted batch artifacts | Proof-gated aggregation over verified batches |
-| Tally verification | Verifier adapter only | Generated and audited verifier contract |
+| Tally verification | Verifier adapter plus test mock only | Generated and audited verifier contract |
 | Data availability | Local/IPFS-gateway preflight script | Multi-provider persistence strategy |
 | Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |

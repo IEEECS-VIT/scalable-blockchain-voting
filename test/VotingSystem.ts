@@ -170,4 +170,40 @@ describe("Voting system foundation", async function () {
     );
     assert.equal(await tally.read.resultPublished(), false);
   });
+
+  it("publishes a tally only after the configured verifier accepts the public inputs", async function () {
+    const verifier = await viem.deployContract("MockTallyProofVerifier");
+    const tally = await viem.deployContract("TallyVerifier", [
+      electionId,
+      owner.account.address,
+      verifier.address,
+    ]);
+    const resultHash = keccak256(stringToHex("encrypted-aggregate-and-decrypted-result"));
+    const publicInputsHash = keccak256(stringToHex("tally-public-inputs"));
+
+    await assert.rejects(
+      tally.write.publishTally(
+        [resultHash, publicInputsHash, "0x1234"],
+        { account: owner.account },
+      ),
+    );
+
+    await verifier.write.setAccepted([publicInputsHash, true], {
+      account: owner.account,
+    });
+    await assert.rejects(
+      tally.write.publishTally(
+        [resultHash, publicInputsHash, "0x1234"],
+        { account: outsider.account },
+      ),
+    );
+    await tally.write.publishTally(
+      [resultHash, publicInputsHash, "0x1234"],
+      { account: owner.account },
+    );
+
+    assert.equal(await tally.read.resultPublished(), true);
+    assert.equal(await tally.read.resultHash(), resultHash);
+    assert.equal(await tally.read.publicInputsHash(), publicInputsHash);
+  });
 });

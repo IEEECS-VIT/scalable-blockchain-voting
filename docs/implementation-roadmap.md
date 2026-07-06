@@ -38,8 +38,9 @@
 ## Milestone 5 - Tally
 
 - [x] Aggregate locally validated ballots from accepted batch artifacts
-- [ ] Implement partial threshold decryptions without reconstructing the key
-- [ ] Prove each decryption share
+- [x] Implement local partial threshold decryptions without reconstructing the
+  key
+- [x] Add off-chain DLEQ correctness proofs for decryption shares
 - [ ] Bind all accepted batch roots, election configuration, aggregate
   ciphertext, and published totals into the tally proof
 - [ ] Connect the generated verifier to `TallyVerifier`
