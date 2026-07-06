@@ -14,7 +14,8 @@ Implemented now:
 - canonical vote-package JSON serialization for content-addressed storage;
 - batch public-input hashing for the future validity/state-transition circuit;
 - encrypted tally public-input hashing for the future tally circuit;
-- local demo decryption and homomorphic aggregation helpers;
+- local demo decryption, homomorphic aggregation, threshold share generation,
+  partial decryption shares, and DLEQ share-proof verification;
 - strict `VotePackageV1` validation;
 - no timestamp, device, browser, or client-version metadata in stored vote
   packages;
@@ -27,9 +28,10 @@ Implemented now:
 Not implemented yet:
 
 - real ballot-validity proof generation;
-- real batch-validity/nullifier-state circuit; or
+- real batch-validity/nullifier-state circuit;
+- an on-chain tally/decryption verifier; or
 - IPFS download and persistence monitoring.
 
 The current code is intentionally a serialization and commitment layer. It is
 the foundation that real proof systems plug into next; it is not a replacement
-for the circuits or threshold decryption.
+for the ballot, batch, or tally circuits.

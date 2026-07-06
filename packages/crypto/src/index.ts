@@ -22,6 +22,8 @@ export const BATCH_MANIFEST_VERSION = 1 as const;
 export const BALLOT_CIPHERTEXT_SCHEME =
   "ec-elgamal-secp256k1-compressed-points-v1" as const;
 export const BALLOT_PROOF_SYSTEM = "groth16-ballot-validity-v1" as const;
+export const TALLY_DECRYPTION_SHARE_SCHEME =
+  "threshold-ec-elgamal-decryption-share-v1" as const;
 
 export type ElectionKeyPair = {
   privateKey: Hex;
@@ -39,6 +41,35 @@ export type BallotValidityProofV1 = {
   system: typeof BALLOT_PROOF_SYSTEM;
   proof: Hex;
   publicInputsHash: Bytes32;
+};
+
+export type ThresholdKeyShareV1 = {
+  trusteeIndex: number;
+  privateShare: Hex;
+  publicShare: Hex;
+};
+
+export type ThresholdElectionKeySetV1 = {
+  threshold: number;
+  trusteeCount: number;
+  publicKey: Hex;
+  publicKeyHash: Bytes32;
+  shares: readonly ThresholdKeyShareV1[];
+};
+
+export type TallyDecryptionShareProofV1 = {
+  commitmentToGenerator: Hex;
+  commitmentToCiphertext: Hex;
+  response: Hex;
+};
+
+export type TallyDecryptionShareV1 = {
+  scheme: typeof TALLY_DECRYPTION_SHARE_SCHEME;
+  trusteeIndex: number;
+  trusteePublicShare: Hex;
+  electionPublicKeyHash: Bytes32;
+  decryptionSharePoints: readonly Hex[];
+  proofs: readonly TallyDecryptionShareProofV1[];
 };
 
 export type VotePackageV1 = {
@@ -152,6 +183,17 @@ const stripHexPrefix = (value: Hex): string => value.slice(2);
 const bytesToPrefixedHex = (value: Uint8Array): Hex =>
   `0x${bytesToHex(value)}`;
 
+function modOrder(value: bigint): bigint {
+  const result = value % SECP256K1_ORDER;
+  return result >= 0n ? result : result + SECP256K1_ORDER;
+}
+
+function scalarToHex(value: bigint): Hex {
+  const scalar = modOrder(value);
+  assert.notEqual(scalar, 0n, "scalar cannot be zero");
+  return `0x${scalar.toString(16).padStart(64, "0")}`;
+}
+
 function canonicalizeJson(value: unknown): CanonicalJson {
   if (
     value === null ||
@@ -188,6 +230,10 @@ function scalarFromPrivateKey(privateKey: Hex, label = "privateKey"): bigint {
   return scalar;
 }
 
+function scalarFromHex(value: Hex, label: string): bigint {
+  return scalarFromPrivateKey(normalizeHex(value), label);
+}
+
 function pointFromHex(value: Hex, label: string): typeof secp256k1.ProjectivePoint.BASE {
   assertCompressedPointHex(value, label);
   return secp256k1.ProjectivePoint.fromHex(stripHexPrefix(value));
@@ -214,6 +260,62 @@ export function deriveElectionPublicKey(privateKey: Hex): Hex {
   return bytesToPrefixedHex(
     secp256k1.getPublicKey(hexToBytes(stripHexPrefix(privateKey)), true),
   );
+}
+
+export function createThresholdElectionKeyShares(params: {
+  privateKey?: Hex;
+  threshold: number;
+  trusteeCount: number;
+  coefficients?: readonly Hex[];
+}): ThresholdElectionKeySetV1 {
+  assert.equal(Number.isInteger(params.threshold), true, "threshold must be an integer");
+  assert.equal(Number.isInteger(params.trusteeCount), true, "trusteeCount must be an integer");
+  assert.equal(params.threshold >= 2, true, "threshold must be at least two");
+  assert.equal(params.trusteeCount >= params.threshold, true, "trusteeCount must be at least threshold");
+  const secret = params.privateKey === undefined
+    ? scalarFromPrivateKey(bytesToPrefixedHex(secp256k1.utils.randomPrivateKey()), "privateKey")
+    : scalarFromHex(params.privateKey, "privateKey");
+  if (params.coefficients !== undefined) {
+    assert.equal(
+      params.coefficients.length,
+      params.threshold - 1,
+      "coefficients must include threshold - 1 scalar values",
+    );
+  }
+  const coefficients = params.coefficients === undefined
+    ? Array.from(
+        { length: params.threshold - 1 },
+        () => scalarFromPrivateKey(bytesToPrefixedHex(secp256k1.utils.randomPrivateKey()), "coefficient"),
+      )
+    : params.coefficients.map((coefficient, index) =>
+        scalarFromHex(coefficient, `coefficients[${index}]`),
+      );
+
+  const shares: ThresholdKeyShareV1[] = [];
+  for (let trusteeIndex = 1; trusteeIndex <= params.trusteeCount; trusteeIndex += 1) {
+    const x = BigInt(trusteeIndex);
+    let y = secret;
+    let power = x;
+    for (const coefficient of coefficients) {
+      y = modOrder(y + coefficient * power);
+      power = modOrder(power * x);
+    }
+    const privateShare = scalarToHex(y);
+    shares.push({
+      trusteeIndex,
+      privateShare,
+      publicShare: pointToHex(secp256k1.ProjectivePoint.BASE.multiply(y)),
+    });
+  }
+
+  const publicKey = pointToHex(secp256k1.ProjectivePoint.BASE.multiply(secret));
+  return {
+    threshold: params.threshold,
+    trusteeCount: params.trusteeCount,
+    publicKey,
+    publicKeyHash: hashElectionPublicKey(publicKey),
+    shares,
+  };
 }
 
 export function hashElectionPublicKey(publicKey: Hex): Bytes32 {
@@ -379,6 +481,182 @@ export function decryptAggregatedTally(params: {
   });
 }
 
+export function createTallyDecryptionShare(params: {
+  trusteeIndex: number;
+  privateShare: Hex;
+  ciphertext: BallotCiphertextV1;
+  proofNonces?: readonly Hex[];
+}): TallyDecryptionShareV1 {
+  assert.equal(Number.isInteger(params.trusteeIndex), true, "trusteeIndex must be an integer");
+  assert.equal(params.trusteeIndex > 0, true, "trusteeIndex must be positive");
+  const privateShare = scalarFromHex(params.privateShare, "privateShare");
+  const ciphertext = validateCiphertext(params.ciphertext);
+  const candidateCount = ciphertext.points.length / 2;
+  if (params.proofNonces !== undefined) {
+    assert.equal(
+      params.proofNonces.length,
+      candidateCount,
+      "proofNonces must include one scalar per candidate",
+    );
+  }
+
+  const trusteePublicShare = pointToHex(
+    secp256k1.ProjectivePoint.BASE.multiply(privateShare),
+  );
+  const decryptionSharePoints: Hex[] = [];
+  const proofs: TallyDecryptionShareProofV1[] = [];
+
+  for (let pairIndex = 0; pairIndex < candidateCount; pairIndex += 1) {
+    const c1 = pointFromHex(ciphertext.points[pairIndex * 2]!, `ciphertext.points[${pairIndex * 2}]`);
+    const sharePoint = c1.multiply(privateShare);
+    const sharePointHex = pointToHex(sharePoint);
+    const nonce = params.proofNonces?.[pairIndex] === undefined
+      ? scalarFromPrivateKey(bytesToPrefixedHex(secp256k1.utils.randomPrivateKey()), "proofNonce")
+      : scalarFromHex(params.proofNonces[pairIndex]!, `proofNonces[${pairIndex}]`);
+    const commitmentToGeneratorPoint = secp256k1.ProjectivePoint.BASE.multiply(nonce);
+    const commitmentToCiphertextPoint = c1.multiply(nonce);
+    const commitmentToGenerator = pointToHex(commitmentToGeneratorPoint);
+    const commitmentToCiphertext = pointToHex(commitmentToCiphertextPoint);
+    const challenge = decryptionShareChallenge({
+      electionPublicKeyHash: ciphertext.electionPublicKeyHash,
+      trusteeIndex: params.trusteeIndex,
+      trusteePublicShare,
+      ciphertextPoint: ciphertext.points[pairIndex * 2]!,
+      decryptionSharePoint: sharePointHex,
+      commitmentToGenerator,
+      commitmentToCiphertext,
+    });
+    const response = scalarToHex(nonce + challenge * privateShare);
+
+    decryptionSharePoints.push(sharePointHex);
+    proofs.push({
+      commitmentToGenerator,
+      commitmentToCiphertext,
+      response,
+    });
+  }
+
+  return {
+    scheme: TALLY_DECRYPTION_SHARE_SCHEME,
+    trusteeIndex: params.trusteeIndex,
+    trusteePublicShare,
+    electionPublicKeyHash: ciphertext.electionPublicKeyHash,
+    decryptionSharePoints,
+    proofs,
+  };
+}
+
+export function verifyTallyDecryptionShare(params: {
+  ciphertext: BallotCiphertextV1;
+  share: TallyDecryptionShareV1;
+}): boolean {
+  try {
+    const ciphertext = validateCiphertext(params.ciphertext);
+    const share = validateTallyDecryptionShare(params.share, ciphertext);
+    for (let pairIndex = 0; pairIndex < ciphertext.points.length / 2; pairIndex += 1) {
+      const c1 = pointFromHex(ciphertext.points[pairIndex * 2]!, `ciphertext.points[${pairIndex * 2}]`);
+      const trusteePublicShare = pointFromHex(share.trusteePublicShare, "trusteePublicShare");
+      const decryptionSharePoint = pointFromHex(
+        share.decryptionSharePoints[pairIndex]!,
+        `decryptionSharePoints[${pairIndex}]`,
+      );
+      const proof = share.proofs[pairIndex]!;
+      const response = scalarFromHex(proof.response, `proofs[${pairIndex}].response`);
+      const challenge = decryptionShareChallenge({
+        electionPublicKeyHash: ciphertext.electionPublicKeyHash,
+        trusteeIndex: share.trusteeIndex,
+        trusteePublicShare: share.trusteePublicShare,
+        ciphertextPoint: ciphertext.points[pairIndex * 2]!,
+        decryptionSharePoint: share.decryptionSharePoints[pairIndex]!,
+        commitmentToGenerator: proof.commitmentToGenerator,
+        commitmentToCiphertext: proof.commitmentToCiphertext,
+      });
+
+      const expectedGeneratorCommitment = secp256k1.ProjectivePoint.BASE
+        .multiply(response)
+        .subtract(trusteePublicShare.multiply(challenge));
+      const expectedCiphertextCommitment = c1
+        .multiply(response)
+        .subtract(decryptionSharePoint.multiply(challenge));
+
+      if (pointToHex(expectedGeneratorCommitment) !== proof.commitmentToGenerator) {
+        return false;
+      }
+      if (pointToHex(expectedCiphertextCommitment) !== proof.commitmentToCiphertext) {
+        return false;
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function decryptAggregatedTallyWithShares(params: {
+  ciphertext: BallotCiphertextV1;
+  shares: readonly TallyDecryptionShareV1[];
+  threshold: number;
+  maxVotes: number;
+}): readonly number[] {
+  assert.equal(Number.isInteger(params.threshold), true, "threshold must be an integer");
+  assert.equal(params.threshold >= 2, true, "threshold must be at least two");
+  assert.equal(Number.isInteger(params.maxVotes), true, "maxVotes must be an integer");
+  assert.equal(params.maxVotes >= 0, true, "maxVotes cannot be negative");
+  assert.equal(params.shares.length >= params.threshold, true, "not enough decryption shares");
+  const ciphertext = validateCiphertext(params.ciphertext);
+  const selectedShares = params.shares
+    .map((share) => validateTallyDecryptionShare(share, ciphertext))
+    .sort((left, right) => left.trusteeIndex - right.trusteeIndex)
+    .slice(0, params.threshold);
+  const seenIndexes = new Set<number>();
+  for (const share of selectedShares) {
+    assert.equal(verifyTallyDecryptionShare({ ciphertext, share }), true, "invalid decryption share proof");
+    assert.equal(seenIndexes.has(share.trusteeIndex), false, "duplicate trustee index");
+    seenIndexes.add(share.trusteeIndex);
+  }
+
+  const lagrangeByTrustee = selectedShares.map((share) => ({
+    share,
+    coefficient: lagrangeCoefficientAtZero(
+      BigInt(share.trusteeIndex),
+      selectedShares.map((entry) => BigInt(entry.trusteeIndex)),
+    ),
+  }));
+
+  const combinedPublicKey = lagrangeByTrustee.reduce(
+    (accumulator, entry) =>
+      accumulator.add(pointFromHex(entry.share.trusteePublicShare, "trusteePublicShare").multiply(entry.coefficient)),
+    secp256k1.ProjectivePoint.ZERO,
+  );
+  assert.equal(
+    hashElectionPublicKey(pointToHex(combinedPublicKey)),
+    ciphertext.electionPublicKeyHash,
+    "decryption shares do not reconstruct the election public key",
+  );
+
+  const lookup = buildTallyLookup(params.maxVotes);
+  const counts: number[] = [];
+  for (let pairIndex = 0; pairIndex < ciphertext.points.length / 2; pairIndex += 1) {
+    const c2 = pointFromHex(ciphertext.points[pairIndex * 2 + 1]!, `ciphertext.points[${pairIndex * 2 + 1}]`);
+    const sharedSecret = lagrangeByTrustee.reduce(
+      (accumulator, entry) =>
+        accumulator.add(pointFromHex(
+          entry.share.decryptionSharePoints[pairIndex]!,
+          `decryptionSharePoints[${pairIndex}]`,
+        ).multiply(entry.coefficient)),
+      secp256k1.ProjectivePoint.ZERO,
+    );
+    const messagePoint = c2.subtract(sharedSecret);
+    const count = messagePoint.equals(secp256k1.ProjectivePoint.ZERO)
+      ? lookup.get("zero")
+      : lookup.get(pointToHex(messagePoint));
+    assert.notEqual(count, undefined, "ciphertext does not decrypt to an expected small tally value");
+    counts.push(count as number);
+  }
+
+  return counts;
+}
+
 function validateCiphertext(input: BallotCiphertextV1): BallotCiphertextV1 {
   exactKeys(
     input as unknown as Record<string, unknown>,
@@ -412,14 +690,7 @@ function decryptCiphertextCounts(params: {
   ciphertext: BallotCiphertextV1;
   maxCount: number;
 }): readonly number[] {
-  const lookup = new Map<string, number>();
-  lookup.set("zero", 0);
-  for (let count = 1; count <= params.maxCount; count += 1) {
-    lookup.set(
-      pointToHex(secp256k1.ProjectivePoint.BASE.multiply(BigInt(count))),
-      count,
-    );
-  }
+  const lookup = buildTallyLookup(params.maxCount);
 
   const counts: number[] = [];
   for (let index = 0; index < params.ciphertext.points.length; index += 2) {
@@ -434,6 +705,140 @@ function decryptCiphertextCounts(params: {
   }
 
   return counts;
+}
+
+function buildTallyLookup(maxCount: number): Map<string, number> {
+  const lookup = new Map<string, number>();
+  lookup.set("zero", 0);
+  for (let count = 1; count <= maxCount; count += 1) {
+    lookup.set(
+      pointToHex(secp256k1.ProjectivePoint.BASE.multiply(BigInt(count))),
+      count,
+    );
+  }
+  return lookup;
+}
+
+function decryptionShareChallenge(params: {
+  electionPublicKeyHash: Bytes32;
+  trusteeIndex: number;
+  trusteePublicShare: Hex;
+  ciphertextPoint: Hex;
+  decryptionSharePoint: Hex;
+  commitmentToGenerator: Hex;
+  commitmentToCiphertext: Hex;
+}): bigint {
+  assertBytes32(params.electionPublicKeyHash, "electionPublicKeyHash");
+  assert.equal(Number.isInteger(params.trusteeIndex), true, "trusteeIndex must be an integer");
+  assert.equal(params.trusteeIndex > 0, true, "trusteeIndex must be positive");
+  assertCompressedPointHex(params.trusteePublicShare, "trusteePublicShare");
+  assertCompressedPointHex(params.ciphertextPoint, "ciphertextPoint");
+  assertCompressedPointHex(params.decryptionSharePoint, "decryptionSharePoint");
+  assertCompressedPointHex(params.commitmentToGenerator, "commitmentToGenerator");
+  assertCompressedPointHex(params.commitmentToCiphertext, "commitmentToCiphertext");
+
+  return modOrder(BigInt(keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 electionPublicKeyHash, uint32 trusteeIndex, bytes trusteePublicShare, bytes ciphertextPoint, bytes decryptionSharePoint, bytes commitmentToGenerator, bytes commitmentToCiphertext",
+      ),
+      [
+        domainHash("SVB_TALLY_DECRYPTION_SHARE_DLEQ_V1"),
+        normalizeBytes32(params.electionPublicKeyHash),
+        params.trusteeIndex,
+        normalizeHex(params.trusteePublicShare),
+        normalizeHex(params.ciphertextPoint),
+        normalizeHex(params.decryptionSharePoint),
+        normalizeHex(params.commitmentToGenerator),
+        normalizeHex(params.commitmentToCiphertext),
+      ],
+    ),
+  )));
+}
+
+function lagrangeCoefficientAtZero(x: bigint, allX: readonly bigint[]): bigint {
+  let numerator = 1n;
+  let denominator = 1n;
+  for (const otherX of allX) {
+    if (otherX === x) continue;
+    numerator = modOrder(numerator * -otherX);
+    denominator = modOrder(denominator * (x - otherX));
+  }
+  return modOrder(numerator * modInverse(denominator));
+}
+
+function modInverse(value: bigint): bigint {
+  let low = modOrder(value);
+  let high = SECP256K1_ORDER;
+  let lm = 1n;
+  let hm = 0n;
+  while (low > 1n) {
+    const ratio = high / low;
+    const next = high - low * ratio;
+    const nextCoefficient = hm - lm * ratio;
+    high = low;
+    hm = lm;
+    low = next;
+    lm = nextCoefficient;
+  }
+  return modOrder(lm);
+}
+
+function validateTallyDecryptionShare(
+  input: TallyDecryptionShareV1,
+  ciphertext: BallotCiphertextV1,
+): TallyDecryptionShareV1 {
+  exactKeys(
+    input as unknown as Record<string, unknown>,
+    [
+      "scheme",
+      "trusteeIndex",
+      "trusteePublicShare",
+      "electionPublicKeyHash",
+      "decryptionSharePoints",
+      "proofs",
+    ],
+    "tally decryption share",
+  );
+  assert.equal(input.scheme, TALLY_DECRYPTION_SHARE_SCHEME, "unsupported decryption share scheme");
+  assert.equal(Number.isInteger(input.trusteeIndex), true, "trusteeIndex must be an integer");
+  assert.equal(input.trusteeIndex > 0, true, "trusteeIndex must be positive");
+  assertCompressedPointHex(input.trusteePublicShare, "trusteePublicShare");
+  assertBytes32(input.electionPublicKeyHash, "electionPublicKeyHash");
+  assert.equal(
+    normalizeBytes32(input.electionPublicKeyHash),
+    ciphertext.electionPublicKeyHash,
+    "decryption share is for a different election public key",
+  );
+  const candidateCount = ciphertext.points.length / 2;
+  assert.equal(input.decryptionSharePoints.length, candidateCount, "wrong number of decryption share points");
+  assert.equal(input.proofs.length, candidateCount, "wrong number of decryption share proofs");
+  input.decryptionSharePoints.forEach((point, index) =>
+    assertCompressedPointHex(point, `decryptionSharePoints[${index}]`),
+  );
+  input.proofs.forEach((proof, index) => {
+    exactKeys(
+      proof as unknown as Record<string, unknown>,
+      ["commitmentToGenerator", "commitmentToCiphertext", "response"],
+      `proofs[${index}]`,
+    );
+    assertCompressedPointHex(proof.commitmentToGenerator, `proofs[${index}].commitmentToGenerator`);
+    assertCompressedPointHex(proof.commitmentToCiphertext, `proofs[${index}].commitmentToCiphertext`);
+    scalarFromHex(proof.response, `proofs[${index}].response`);
+  });
+
+  return {
+    scheme: TALLY_DECRYPTION_SHARE_SCHEME,
+    trusteeIndex: input.trusteeIndex,
+    trusteePublicShare: normalizeHex(input.trusteePublicShare),
+    electionPublicKeyHash: normalizeBytes32(input.electionPublicKeyHash),
+    decryptionSharePoints: input.decryptionSharePoints.map(normalizeHex),
+    proofs: input.proofs.map((proof) => ({
+      commitmentToGenerator: normalizeHex(proof.commitmentToGenerator),
+      commitmentToCiphertext: normalizeHex(proof.commitmentToCiphertext),
+      response: normalizeHex(proof.response),
+    })),
+  };
 }
 
 export function digestBallotCiphertext(input: BallotCiphertextV1): Bytes32 {
