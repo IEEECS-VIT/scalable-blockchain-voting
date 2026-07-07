@@ -16,6 +16,8 @@ Implemented now:
 - encrypted tally public-input hashing for the future tally circuit;
 - local demo decryption, homomorphic aggregation, threshold share generation,
   partial decryption shares, and DLEQ share-proof verification;
+- final tally result hashing bound to accepted batches, aggregate ciphertext,
+  decrypted counts, and decryption-share digests;
 - strict `VotePackageV1` validation;
 - no timestamp, device, browser, or client-version metadata in stored vote
   packages;

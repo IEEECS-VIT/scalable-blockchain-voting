@@ -12,11 +12,14 @@ import {
   BALLOT_PROOF_SYSTEM,
   VOTE_PACKAGE_VERSION,
   computeBallotPublicInputsHash,
+  createTallyDecryptionShare,
   createElectionKeyPair,
+  createThresholdElectionKeyShares,
   decryptAggregatedTally,
   encryptBallotSelection,
   serializeVotePackage,
   type BallotCiphertextV1,
+  type TallyDecryptionShareV1,
   type VotePackageV1,
 } from "../packages/crypto/src/index.js";
 
@@ -140,6 +143,8 @@ describe("tally aggregation script", function () {
         ballotCount: number;
         aggregateCiphertext: BallotCiphertextV1;
         aggregateCiphertextDigest: string;
+        acceptedBatchManifestDigests: readonly string[];
+        acceptedBatchPublicInputsHashes: readonly string[];
         encryptedTallyPublicInputsHash: string;
       };
 
@@ -154,6 +159,74 @@ describe("tally aggregation script", function () {
         }),
         [1, 0, 1],
       );
+
+      await writeFile(
+        join(tempDir, "tally-artifact.json"),
+        JSON.stringify(tallyOutput),
+        "utf8",
+      );
+      const thresholdKey = createThresholdElectionKeyShares({
+        privateKey,
+        threshold: 2,
+        trusteeCount: 3,
+        coefficients: [
+          "0x000000000000000000000000000000000000000000000000000000000000001d",
+        ],
+      });
+      const shareFiles = thresholdKey.shares.slice(0, 2).map((share, index) => {
+        const decryptionShare = createTallyDecryptionShare({
+          trusteeIndex: share.trusteeIndex,
+          privateShare: share.privateShare,
+          ciphertext: tallyOutput.aggregateCiphertext,
+          proofNonces: [
+            `0x${(41n + BigInt(index)).toString(16).padStart(64, "0")}`,
+            `0x${(42n + BigInt(index)).toString(16).padStart(64, "0")}`,
+            `0x${(43n + BigInt(index)).toString(16).padStart(64, "0")}`,
+          ],
+        });
+        return {
+          path: `share-${share.trusteeIndex}.json`,
+          decryptionShare,
+        };
+      });
+      await Promise.all(shareFiles.map((entry) =>
+        writeFile(
+          join(tempDir, entry.path),
+          JSON.stringify(entry.decryptionShare satisfies TallyDecryptionShareV1),
+          "utf8",
+        ),
+      ));
+      const tallyResultInputPath = join(tempDir, "tally-result-input.json");
+      await writeFile(
+        tallyResultInputPath,
+        JSON.stringify({
+          tallyArtifactPath: "tally-artifact.json",
+          threshold: 2,
+          decryptionShares: shareFiles.map((entry) => ({ path: entry.path })),
+        }),
+        "utf8",
+      );
+
+      const tallyResult = await runScript(
+        "scripts/build_tally_result.ts",
+        tallyResultInputPath,
+      ) as {
+        tallyCounts: readonly number[];
+        resultHash: string;
+        tallyProofPublicInputsHash: string;
+        decryptionShareDigests: readonly string[];
+        tallyVerifierPublishArgs: {
+          resultHash: string;
+          publicInputsHash: string;
+        };
+      };
+
+      assert.deepEqual(tallyResult.tallyCounts, [1, 0, 1]);
+      assert.equal(tallyResult.decryptionShareDigests.length, 2);
+      assert.match(tallyResult.resultHash, /^0x[0-9a-f]{64}$/);
+      assert.match(tallyResult.tallyProofPublicInputsHash, /^0x[0-9a-f]{64}$/);
+      assert.equal(tallyResult.tallyVerifierPublishArgs.resultHash, tallyResult.resultHash);
+      assert.equal(tallyResult.tallyVerifierPublishArgs.publicInputsHash, tallyResult.tallyProofPublicInputsHash);
     } finally {
       await rm(tempDir, { force: true, recursive: true });
     }

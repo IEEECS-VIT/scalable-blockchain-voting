@@ -858,6 +858,150 @@ export function digestBallotCiphertext(input: BallotCiphertextV1): Bytes32 {
   );
 }
 
+export function digestTallyDecryptionShare(params: {
+  ciphertext: BallotCiphertextV1;
+  share: TallyDecryptionShareV1;
+}): Bytes32 {
+  const ciphertext = validateCiphertext(params.ciphertext);
+  const share = validateTallyDecryptionShare(params.share, ciphertext);
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 aggregateCiphertextDigest, uint32 trusteeIndex, bytes trusteePublicShare, bytes32 electionPublicKeyHash, bytes[] decryptionSharePoints",
+      ),
+      [
+        domainHash("SVB_TALLY_DECRYPTION_SHARE_V1"),
+        digestBallotCiphertext(ciphertext),
+        share.trusteeIndex,
+        share.trusteePublicShare,
+        share.electionPublicKeyHash,
+        [...share.decryptionSharePoints],
+      ],
+    ),
+  );
+}
+
+export function computeTallyResultHash(params: {
+  electionId: Bytes32;
+  candidateListHash: Bytes32;
+  electionPublicKeyHash: Bytes32;
+  aggregateCiphertext: BallotCiphertextV1;
+  tallyCounts: readonly number[];
+  decryptionShareDigests: readonly Bytes32[];
+}): Bytes32 {
+  assertBytes32(params.electionId, "electionId");
+  assertBytes32(params.candidateListHash, "candidateListHash");
+  assertBytes32(params.electionPublicKeyHash, "electionPublicKeyHash");
+  const aggregateCiphertext = validateCiphertext(params.aggregateCiphertext);
+  assert.equal(
+    aggregateCiphertext.electionPublicKeyHash,
+    normalizeBytes32(params.electionPublicKeyHash),
+    "aggregate ciphertext key does not match election public key hash",
+  );
+  assert.equal(params.tallyCounts.length > 1, true, "tallyCounts must include at least two candidates");
+  const tallyCounts = params.tallyCounts.map((count, index) => {
+    assert.equal(Number.isInteger(count), true, `tallyCounts[${index}] must be an integer`);
+    assert.equal(count >= 0, true, `tallyCounts[${index}] cannot be negative`);
+    assert.equal(count <= 0xffffffff, true, `tallyCounts[${index}] exceeds uint32`);
+    return count;
+  });
+  const decryptionShareDigests = params.decryptionShareDigests.map((digest, index) => {
+    assertBytes32(digest, `decryptionShareDigests[${index}]`);
+    return normalizeBytes32(digest);
+  });
+  assert.equal(
+    decryptionShareDigests.length > 0,
+    true,
+    "at least one decryption share digest is required",
+  );
+
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 electionId, bytes32 candidateListHash, bytes32 electionPublicKeyHash, bytes32 aggregateCiphertextDigest, uint32[] tallyCounts, bytes32[] decryptionShareDigests",
+      ),
+      [
+        domainHash("SVB_TALLY_RESULT_V1"),
+        normalizeBytes32(params.electionId),
+        normalizeBytes32(params.candidateListHash),
+        normalizeBytes32(params.electionPublicKeyHash),
+        digestBallotCiphertext(aggregateCiphertext),
+        tallyCounts,
+        decryptionShareDigests,
+      ],
+    ),
+  );
+}
+
+export function computeTallyProofPublicInputsHash(params: {
+  electionId: Bytes32;
+  candidateListHash: Bytes32;
+  electionPublicKeyHash: Bytes32;
+  acceptedBatchManifestDigests: readonly Bytes32[];
+  acceptedBatchPublicInputsHashes: readonly Bytes32[];
+  aggregateCiphertext: BallotCiphertextV1;
+  tallyCounts: readonly number[];
+  decryptionShareDigests: readonly Bytes32[];
+  resultHash: Bytes32;
+}): Bytes32 {
+  assertBytes32(params.electionId, "electionId");
+  assertBytes32(params.candidateListHash, "candidateListHash");
+  assertBytes32(params.electionPublicKeyHash, "electionPublicKeyHash");
+  assertBytes32(params.resultHash, "resultHash");
+  const acceptedBatchManifestDigests = params.acceptedBatchManifestDigests.map((digest, index) => {
+    assertBytes32(digest, `acceptedBatchManifestDigests[${index}]`);
+    return normalizeBytes32(digest);
+  });
+  const acceptedBatchPublicInputsHashes = params.acceptedBatchPublicInputsHashes.map((hashValue, index) => {
+    assertBytes32(hashValue, `acceptedBatchPublicInputsHashes[${index}]`);
+    return normalizeBytes32(hashValue);
+  });
+  assert.equal(
+    acceptedBatchManifestDigests.length,
+    acceptedBatchPublicInputsHashes.length,
+    "accepted batch digest arrays must have the same length",
+  );
+  assert.equal(
+    acceptedBatchManifestDigests.length > 0,
+    true,
+    "at least one accepted batch is required",
+  );
+
+  const resultHash = computeTallyResultHash({
+    electionId: params.electionId,
+    candidateListHash: params.candidateListHash,
+    electionPublicKeyHash: params.electionPublicKeyHash,
+    aggregateCiphertext: params.aggregateCiphertext,
+    tallyCounts: params.tallyCounts,
+    decryptionShareDigests: params.decryptionShareDigests,
+  });
+  assert.equal(
+    resultHash,
+    normalizeBytes32(params.resultHash),
+    "resultHash does not match tally result fields",
+  );
+
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        "bytes32 domain, bytes32 electionId, bytes32 candidateListHash, bytes32 electionPublicKeyHash, bytes32[] acceptedBatchManifestDigests, bytes32[] acceptedBatchPublicInputsHashes, bytes32 aggregateCiphertextDigest, uint32[] tallyCounts, bytes32[] decryptionShareDigests, bytes32 resultHash",
+      ),
+      [
+        domainHash("SVB_TALLY_PROOF_PUBLIC_INPUTS_V1"),
+        normalizeBytes32(params.electionId),
+        normalizeBytes32(params.candidateListHash),
+        normalizeBytes32(params.electionPublicKeyHash),
+        acceptedBatchManifestDigests,
+        acceptedBatchPublicInputsHashes,
+        digestBallotCiphertext(params.aggregateCiphertext),
+        params.tallyCounts,
+        params.decryptionShareDigests.map(normalizeBytes32),
+        normalizeBytes32(params.resultHash),
+      ],
+    ),
+  );
+}
+
 export function computeEncryptedTallyPublicInputsHash(params: {
   electionId: Bytes32;
   candidateListHash: Bytes32;
