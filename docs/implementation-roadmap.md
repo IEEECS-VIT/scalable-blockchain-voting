@@ -41,8 +41,10 @@
 - [x] Implement local partial threshold decryptions without reconstructing the
   key
 - [x] Add off-chain DLEQ correctness proofs for decryption shares
-- [ ] Bind all accepted batch roots, election configuration, aggregate
-  ciphertext, and published totals into the tally proof
+- [x] Build a tally result artifact that binds accepted batches, election
+  configuration, aggregate ciphertext, decrypted totals, and decryption-share
+  digests into publishable hashes
+- [ ] Replace tally result hash-binding with a real tally proof circuit
 - [ ] Connect the generated verifier to `TallyVerifier`
 
 ## Milestone 6 - User experience

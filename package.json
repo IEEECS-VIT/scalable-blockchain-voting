@@ -15,6 +15,7 @@
     "build:batch": "tsx scripts/build_batch_manifest.ts",
     "check:data": "tsx scripts/check_data_availability.ts",
     "build:tally": "tsx scripts/build_tally_input.ts",
+    "build:tally-result": "tsx scripts/build_tally_result.ts",
     "deploy:local": "hardhat ignition deploy ignition/modules/VotingSystem.ts",
     "deploy:amoy": "hardhat ignition deploy ignition/modules/VotingSystem.ts --network amoy"
   },

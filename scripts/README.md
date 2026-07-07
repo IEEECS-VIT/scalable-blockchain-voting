@@ -60,6 +60,15 @@ public inputs for the future tally proof.
 npm run build:tally -- path/to/tally-input.json
 ```
 
+`build_tally_result.ts` reads the encrypted tally artifact plus trustee
+decryption-share files, verifies the share proofs, decrypts the final counts,
+and outputs the `resultHash` and `publicInputsHash` that should be passed to
+`TallyVerifier.publishTally` once a real proof is generated.
+
+```bash
+npm run build:tally-result -- path/to/tally-result-input.json
+```
+
 Batch construction and tally scripts should only be added after their schemas
 and proof statements are fixed. Empty or fake scripts would make the demo look
 more complete than it is.

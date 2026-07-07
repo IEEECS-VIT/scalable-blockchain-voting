@@ -87,7 +87,7 @@ local demo decryption, homomorphic aggregation helpers, threshold share
 generation, DLEQ-checked partial decryption shares, deterministic hashes,
 canonical vote-package JSON, Merkle roots, inclusion receipts,
 duplicate-nullifier checks, batch public-input hashing, encrypted tally input
-aggregation, and data-availability preflight checks.
+aggregation, tally-result hash binding, and data-availability preflight checks.
 
 It still does not prove ballot validity, prove batch validity, or verify a full
 tally statement on-chain. Those pieces need real circuits and verifier
@@ -100,6 +100,12 @@ the proof and public-input hash. The repository includes only a test mock for
 this seam. It is not a SNARK verifier, so real verified tally publication
 remains intentionally unavailable.
 
+`build_tally_result.ts` now produces the `resultHash` and `publicInputsHash`
+that should be supplied to this contract after a real tally proof is generated.
+Those hashes bind the accepted batch manifests, batch public-input hashes,
+aggregate ciphertext, decrypted counts, and decryption-share digests. They are
+audit-friendly public inputs, not a replacement for the missing tally circuit.
+
 ## Demo versus future production
 
 | Capability | Current status | Required stronger version |
@@ -111,7 +117,7 @@ remains intentionally unavailable.
 | Batching | Deterministic manifest builder, finalization script, plus trusted root submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
 | Threshold tally | Local Shamir-style shares plus off-chain DLEQ share proofs | Audited threshold ceremony and verifier-compatible decryption proofs |
-| Encrypted tally aggregation | Local aggregation from accepted batch artifacts | Proof-gated aggregation over verified batches |
+| Encrypted tally aggregation | Local aggregation plus result-hash binding from accepted batch artifacts | Proof-gated aggregation over verified batches |
 | Tally verification | Verifier adapter plus test mock only | Generated and audited verifier contract |
 | Data availability | Local/IPFS-gateway preflight script | Multi-provider persistence strategy |
 | Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |
