@@ -52,6 +52,21 @@ npm run check:data -- path/to/batch-input.json
 CHECK_IPFS_FETCH=1 IPFS_GATEWAY_URL=https://ipfs.io/ipfs/ npm run check:data -- path/to/batch-input.json
 ```
 
+`check_demo_readiness.ts` is the honest final-demo gate. It fails unless the
+required anonymous eligibility, ballot proof, batch proof, tally proof,
+sponsored UserOperation, and frontend artifacts are present and not marked as
+mock.
+
+```bash
+npm run check:readiness -- path/to/readiness.json
+```
+
+Use `--allow-blocked` when you want a JSON report without failing the command:
+
+```bash
+npm run check:readiness -- path/to/readiness.json --allow-blocked
+```
+
 `build_tally_input.ts` validates accepted batch artifacts against their package
 files, aggregates only those encrypted ballots, and outputs the encrypted tally
 public inputs for the future tally proof.

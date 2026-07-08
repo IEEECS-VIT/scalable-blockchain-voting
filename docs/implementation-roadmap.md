@@ -52,7 +52,8 @@
 - [ ] Build registration, voting, receipt, batch, tally, and verification pages
 - [ ] Implement a real sponsored ERC-4337 UserOperation on Amoy
 - [ ] Add explorer links and clearly labeled failure demonstrations
-- [ ] Add deployment and demo documentation
+- [x] Add a final-demo readiness gate for real-vs-mock artifacts
+- [ ] Add complete deployment and demo documentation
 
 ## Definition of a credible final demo
 

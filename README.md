@@ -6,20 +6,23 @@ verifiable tally publication.
 
 ## Current status
 
-This repository is at the contract-foundation stage. It includes:
+This repository includes:
 
 - a Hardhat 3 + TypeScript development environment;
 - immutable election configuration;
 - trusted-demo voter registration using election-scoped nullifiers and
   ephemeral voting addresses;
 - a direct ballot-commitment path for local contract testing;
-- append-only batch commitments with nullifier-root continuity; and
+- encrypted ballot package utilities;
+- IPFS upload, batch manifest, and data-availability scripts;
+- append-only batch commitments with nullifier-root continuity;
+- encrypted tally aggregation and local threshold-share tally helpers;
+- tally result/public-input hash binding; and
 - a tally-verifier adapter that requires a real verifier contract before a
   result can be marked verified.
 
-The biometric screen, Anon Aadhaar integration, ballot and tally circuits,
-IPFS storage, ERC-4337 sponsorship, threshold decryption, and frontend are not
-implemented yet.
+The biometric screen, Anon Aadhaar integration, real ballot/batch/tally
+circuits, ERC-4337 sponsorship, and frontend are not implemented yet.
 
 ## Important security boundary
 
@@ -56,6 +59,20 @@ npm run deploy:amoy
 ```
 
 Amoy uses chain ID `80002` and POL as its gas token.
+For real verifier-address parameters, copy and edit
+[ignition/parameters.example.json](ignition/parameters.example.json), then run:
+
+```bash
+npx hardhat ignition deploy ignition/modules/VotingSystem.ts --network amoy --parameters ignition/parameters.example.json
+```
+
+Final-demo readiness check:
+
+```bash
+npm run check:readiness -- path/to/readiness.json
+```
+
+See [docs/demo-readiness.md](docs/demo-readiness.md) for the artifact format.
 
 ## Repository layout
 

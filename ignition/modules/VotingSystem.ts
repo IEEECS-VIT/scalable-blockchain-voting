@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { keccak256, stringToHex, zeroAddress } from "viem";
+import { keccak256, stringToHex, type Address, zeroAddress } from "viem";
 
 const DEFAULT_ELECTION_ID = keccak256(
   stringToHex("scalable-voting-demo-2026"),
@@ -22,6 +22,14 @@ export default buildModule("VotingSystem", (m) => {
     "electionPublicKeyHash",
     DEFAULT_PUBLIC_KEY_HASH,
   );
+  const eligibilityVerifier = m.getParameter<Address>(
+    "eligibilityVerifier",
+    zeroAddress,
+  );
+  const tallyProofVerifier = m.getParameter<Address>(
+    "tallyProofVerifier",
+    zeroAddress,
+  );
   const votingStartsAt = m.getParameter(
     "votingStartsAt",
     1_900_000_000n,
@@ -41,7 +49,7 @@ export default buildModule("VotingSystem", (m) => {
   const voterRegistry = m.contract("VoterRegistry", [
     electionId,
     owner,
-    zeroAddress,
+    eligibilityVerifier,
   ]);
   const votingContract = m.contract("VotingContract", [
     electionId,
@@ -55,7 +63,7 @@ export default buildModule("VotingSystem", (m) => {
   const tallyVerifier = m.contract("TallyVerifier", [
     electionId,
     owner,
-    zeroAddress,
+    tallyProofVerifier,
   ]);
 
   return {

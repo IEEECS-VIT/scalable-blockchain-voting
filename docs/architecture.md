@@ -106,6 +106,18 @@ Those hashes bind the accepted batch manifests, batch public-input hashes,
 aggregate ciphertext, decrypted counts, and decryption-share digests. They are
 audit-friendly public inputs, not a replacement for the missing tally circuit.
 
+### Deployment and readiness gates
+
+The Ignition deployment module accepts optional `eligibilityVerifier` and
+`tallyProofVerifier` parameters. They default to the zero address so local
+tests stay safe, but real demo deployments should pass deployed verifier
+addresses instead of relying on post-deploy ambiguity.
+
+`check_demo_readiness.ts` is a strict reporting gate for the final demo. It
+requires real proof artifacts, non-zero verifier/paymaster addresses, a real
+sponsored UserOperation hash, and all planned frontend pages. Mock artifacts
+are reported as blockers.
+
 ## Demo versus future production
 
 | Capability | Current status | Required stronger version |
@@ -121,3 +133,4 @@ audit-friendly public inputs, not a replacement for the missing tally circuit.
 | Tally verification | Verifier adapter plus test mock only | Generated and audited verifier contract |
 | Data availability | Local/IPFS-gateway preflight script | Multi-provider persistence strategy |
 | Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |
+| Final-demo readiness | Strict artifact gate for real-vs-mock status | Independent audit plus deployed end-to-end walkthrough |
