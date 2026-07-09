@@ -12,6 +12,8 @@ This repository includes:
 - immutable election configuration;
 - trusted-demo voter registration using election-scoped nullifiers and
   ephemeral voting addresses;
+- proof-based registration calldata generation for relayer submission;
+- dry-run/live script support for a dedicated registration relayer account;
 - a direct ballot-commitment path for local contract testing;
 - encrypted ballot package utilities;
 - IPFS upload, batch manifest, and data-availability scripts;

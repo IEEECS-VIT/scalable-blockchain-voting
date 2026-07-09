@@ -50,6 +50,14 @@ Registration should be submitted by a relayer or registrar. An identifiable
 wallet should not mint a public credential and register its voting key in the
 same transaction.
 
+`build_registration_request.ts` prepares the exact `registerWithProof`
+calldata and public-input hash for a relayer. It does not run a live relayer
+service yet, but it fixes the boundary between the voter-generated proof
+package and the account that pays for the on-chain registration transaction.
+`submit_registration_relayer.ts` can then submit that transaction with a
+dedicated relayer key, and supports `--dry-run` so the request can be audited
+before spending testnet gas.
+
 ### `VotingContract`
 
 Provides a direct, one-transaction-per-ballot commitment path for contract

@@ -18,6 +18,23 @@ default because some sandboxes block localhost listeners:
 RUN_IPFS_UPLOAD_SCRIPT_TEST=1 npm run test:crypto
 ```
 
+`build_registration_request.ts` turns an eligibility proof package into the
+exact `VoterRegistry.registerWithProof` calldata a relayer should submit. This
+keeps the voter-facing step separate from the on-chain relayer account.
+
+```bash
+npm run build:registration-request -- path/to/registration-request-input.json
+```
+
+`submit_registration_relayer.ts` submits that generated relayer transaction
+with a dedicated relayer key. Use `--dry-run` first to verify the transaction
+without sending it.
+
+```bash
+npm run submit:registration-relayer -- path/to/registration-request-artifact.json --dry-run
+RELAYER_PRIVATE_KEY=0x... RELAYER_RPC_URL=https://... npm run submit:registration-relayer -- path/to/registration-request-artifact.json
+```
+
 `build_batch_manifest.ts` turns uploaded package references into the trusted
 batcher's finalization artifact: the deterministic manifest, inclusion
 receipts, and the exact `BatchCommitment.submitBatch` arguments.

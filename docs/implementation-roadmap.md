@@ -15,7 +15,9 @@
 - [x] Add an eligibility-verifier interface seam
 - [ ] Integrate Anon Aadhaar test mode behind the verifier interface
 - [x] Bind the election ID and ephemeral voting key into the proof signal
-- [ ] Submit registration through a relayer
+- [x] Build the relayer-safe registration request/calldata package
+- [x] Add a dedicated relayer submission script with dry-run safety
+- [ ] Execute proof registration through a live Amoy relayer
 - [ ] Remove the trusted registrar path when proof verification is ready
 
 ## Milestone 3 - Ballot cryptography

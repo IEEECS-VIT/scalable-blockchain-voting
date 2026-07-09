@@ -8,10 +8,12 @@
   "scripts": {
     "clean": "hardhat clean",
     "compile": "hardhat compile",
-    "test:crypto": "node --test --import tsx test/BallotEncryption.ts test/CryptoBatching.ts test/IpfsUploadScript.ts test/BatchManifestScript.ts test/DataAvailabilityScript.ts test/TallyAggregationScript.ts test/DemoReadinessScript.ts",
+    "test:crypto": "node --test --import tsx test/BallotEncryption.ts test/CryptoBatching.ts test/IpfsUploadScript.ts test/BatchManifestScript.ts test/DataAvailabilityScript.ts test/TallyAggregationScript.ts test/DemoReadinessScript.ts test/RegistrationRelayerRequestScript.ts",
     "test": "hardhat test",
     "typecheck": "tsc --noEmit",
     "upload:vote-package": "tsx scripts/upload_vote_package.ts",
+    "build:registration-request": "tsx scripts/build_registration_request.ts",
+    "submit:registration-relayer": "tsx scripts/submit_registration_relayer.ts",
     "build:batch": "tsx scripts/build_batch_manifest.ts",
     "check:data": "tsx scripts/check_data_availability.ts",
     "check:readiness": "tsx scripts/check_demo_readiness.ts",
