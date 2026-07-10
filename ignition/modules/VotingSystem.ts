@@ -34,6 +34,10 @@ export default buildModule("VotingSystem", (m) => {
     "batchProofVerifier",
     zeroAddress,
   );
+  const ballotProofVerifier = m.getParameter<Address>(
+    "ballotProofVerifier",
+    zeroAddress,
+  );
   const votingStartsAt = m.getParameter(
     "votingStartsAt",
     1_900_000_000n,
@@ -58,6 +62,8 @@ export default buildModule("VotingSystem", (m) => {
   const votingContract = m.contract("VotingContract", [
     electionId,
     voterRegistry,
+    owner,
+    ballotProofVerifier,
   ]);
   const batchCommitment = m.contract("BatchCommitment", [
     electionId,

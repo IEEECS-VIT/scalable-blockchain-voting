@@ -67,6 +67,12 @@ not the vote or encrypted package.
 
 This is a reference path, not the scalable batch path.
 
+It also exposes `submitBallotWithProof`, a direct proof-gated seam for the
+future ballot-validity verifier. That path stores the ballot proof public-input
+hash beside the nullifier after a configured `IBallotProofVerifier` accepts
+the proof. The repository includes only a test mock verifier for this seam; it
+is not a real ballot-validity circuit.
+
 ### `BatchCommitment`
 
 Records an append-only sequence of CID Merkle roots, nullifier roots, and
@@ -139,7 +145,7 @@ are reported as blockers.
 | Eligibility | Trusted demo registrar plus verifier interface seam | Audited anonymous eligibility verifier |
 | Biometrics | Not implemented | Optional regulated authentication gateway |
 | Ballot encryption | secp256k1 EC-ElGamal-style encrypted vector | Audited election-crypto choice with proof-compatible encoding |
-| Ballot proof | Not implemented | Real circuit proving one valid selection |
+| Ballot proof | Verifier seam plus test mock only | Real circuit proving one valid selection |
 | Batching | Deterministic manifest builder, trusted root submission, plus verifier seam for proof-gated submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
 | Threshold tally | Local Shamir-style shares plus off-chain DLEQ share proofs | Audited threshold ceremony and verifier-compatible decryption proofs |
