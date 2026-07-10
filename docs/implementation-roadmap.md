@@ -24,6 +24,7 @@
 
 - [x] Specify the encrypted vote vector and curve
 - [x] Implement client-side EC-ElGamal encryption
+- [x] Add an on-chain verifier seam for proof-gated direct ballot submission
 - [ ] Build a real ballot-validity circuit
 - [x] Bind election ID, candidate-list hash, ciphertext, and nullifier
 - [x] Add malformed-ballot and duplicate-nullifier tests

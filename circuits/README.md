@@ -12,6 +12,11 @@ Planned circuits:
 No circuit is implemented yet. A hash placeholder must not be presented as a
 SNARK.
 
+The TypeScript crypto utilities output ballot public-input hashes for the
+future ballot-validity circuit. `VotingContract.submitBallotWithProof` can
+store that hash after a configured verifier accepts a proof. This fixes the
+adapter seam; it is not a proof implementation.
+
 The TypeScript batching utilities output `batchPublicInputsHash`, which is the
 intended public-input binding for the future batch-validity/state-transition
 circuit. `BatchCommitment.submitBatchWithProof` can store that hash after a

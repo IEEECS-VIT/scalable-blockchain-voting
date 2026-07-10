@@ -15,6 +15,7 @@ This repository includes:
 - proof-based registration calldata generation for relayer submission;
 - dry-run/live script support for a dedicated registration relayer account;
 - a direct ballot-commitment path for local contract testing;
+- a ballot-validity verifier seam for proof-gated direct ballot submission;
 - encrypted ballot package utilities;
 - IPFS upload, batch manifest, and data-availability scripts;
 - append-only batch commitments with nullifier-root continuity;

@@ -21,6 +21,8 @@ describe("Voting system foundation", async function () {
     const voting = await viem.deployContract("VotingContract", [
       electionId,
       registry.address,
+      owner.account.address,
+      zeroAddress,
     ]);
 
     const identityNullifier = keccak256(stringToHex("identity-nullifier"));
@@ -55,6 +57,96 @@ describe("Voting system foundation", async function () {
           packageDigest,
         ],
         { account: outsider.account },
+      ),
+    );
+  });
+
+  it("accepts direct ballots through the ballot verifier seam", async function () {
+    const verifier = await viem.deployContract("MockBallotProofVerifier");
+    const registry = await viem.deployContract("VoterRegistry", [
+      electionId,
+      owner.account.address,
+      zeroAddress,
+    ]);
+    const voting = await viem.deployContract("VotingContract", [
+      electionId,
+      registry.address,
+      owner.account.address,
+      verifier.address,
+    ]);
+
+    const identityNullifier = keccak256(stringToHex("proof-ballot-identity"));
+    const ballotNullifier = keccak256(stringToHex("proof-ballot-nullifier"));
+    const packageDigest = keccak256(stringToHex("proof-ballot-package"));
+    const ballotPublicInputsHash = keccak256(stringToHex("proof-ballot-public-inputs"));
+
+    await registry.write.register(
+      [identityNullifier, voter.account.address],
+      { account: owner.account },
+    );
+    await assert.rejects(
+      voting.write.submitBallotWithProof(
+        [
+          identityNullifier,
+          ballotNullifier,
+          packageDigest,
+          ballotPublicInputsHash,
+          "0x1234",
+        ],
+        { account: voter.account },
+      ),
+    );
+
+    await verifier.write.setAccepted([ballotPublicInputsHash, true], {
+      account: owner.account,
+    });
+    await voting.write.submitBallotWithProof(
+      [
+        identityNullifier,
+        ballotNullifier,
+        packageDigest,
+        ballotPublicInputsHash,
+        "0x1234",
+      ],
+      { account: voter.account },
+    );
+
+    assert.equal(await voting.read.isNullifierUsed([ballotNullifier]), true);
+    assert.equal(
+      await voting.read.ballotPublicInputsHashOf([ballotNullifier]),
+      ballotPublicInputsHash,
+    );
+  });
+
+  it("rejects proof ballots without a configured ballot verifier", async function () {
+    const registry = await viem.deployContract("VoterRegistry", [
+      electionId,
+      owner.account.address,
+      zeroAddress,
+    ]);
+    const voting = await viem.deployContract("VotingContract", [
+      electionId,
+      registry.address,
+      owner.account.address,
+      zeroAddress,
+    ]);
+
+    const identityNullifier = keccak256(stringToHex("unverified-ballot-identity"));
+    await registry.write.register(
+      [identityNullifier, voter.account.address],
+      { account: owner.account },
+    );
+
+    await assert.rejects(
+      voting.write.submitBallotWithProof(
+        [
+          identityNullifier,
+          keccak256(stringToHex("unverified-ballot-nullifier")),
+          keccak256(stringToHex("unverified-ballot-package")),
+          keccak256(stringToHex("unverified-ballot-public-inputs")),
+          "0x1234",
+        ],
+        { account: voter.account },
       ),
     );
   });
