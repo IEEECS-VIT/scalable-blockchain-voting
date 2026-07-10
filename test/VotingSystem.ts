@@ -121,6 +121,7 @@ describe("Voting system foundation", async function () {
       electionId,
       owner.account.address,
       owner.account.address,
+      zeroAddress,
     ]);
 
     const firstRoot = keccak256(stringToHex("batch-root-1"));
@@ -147,6 +148,86 @@ describe("Voting system foundation", async function () {
           5n,
         ],
         { account: owner.account },
+      ),
+    );
+  });
+
+  it("accepts proof-gated batches through the batch verifier seam", async function () {
+    const verifier = await viem.deployContract("MockBatchProofVerifier");
+    const batcher = await viem.deployContract("BatchCommitment", [
+      electionId,
+      owner.account.address,
+      owner.account.address,
+      verifier.address,
+    ]);
+
+    const cidMerkleRoot = keccak256(stringToHex("proof-batch-root"));
+    const nullifierRoot = keccak256(stringToHex("proof-nullifier-root"));
+    const manifestDigest = keccak256(stringToHex("proof-manifest"));
+    const batchPublicInputsHash = keccak256(stringToHex("proof-batch-public-inputs"));
+
+    await assert.rejects(
+      batcher.write.submitBatchWithProof(
+        [
+          cidMerkleRoot,
+          zeroHash,
+          nullifierRoot,
+          manifestDigest,
+          batchPublicInputsHash,
+          3n,
+          "0x1234",
+        ],
+        { account: outsider.account },
+      ),
+    );
+
+    await verifier.write.setAccepted([batchPublicInputsHash, true], {
+      account: owner.account,
+    });
+    await batcher.write.submitBatchWithProof(
+      [
+        cidMerkleRoot,
+        zeroHash,
+        nullifierRoot,
+        manifestDigest,
+        batchPublicInputsHash,
+        3n,
+        "0x1234",
+      ],
+      { account: outsider.account },
+    );
+
+    const batch = await batcher.read.getBatch([0n]) as {
+      cidMerkleRoot: string;
+      batchPublicInputsHash: string;
+      batcher: string;
+    };
+    assert.equal(batch.cidMerkleRoot, cidMerkleRoot);
+    assert.equal(batch.batchPublicInputsHash, batchPublicInputsHash);
+    assert.equal(batch.batcher.toLowerCase(), outsider.account.address.toLowerCase());
+    assert.equal(await batcher.read.latestNullifierRoot(), nullifierRoot);
+  });
+
+  it("rejects proof-gated batches without a configured batch verifier", async function () {
+    const batcher = await viem.deployContract("BatchCommitment", [
+      electionId,
+      owner.account.address,
+      owner.account.address,
+      zeroAddress,
+    ]);
+
+    await assert.rejects(
+      batcher.write.submitBatchWithProof(
+        [
+          keccak256(stringToHex("unverified-batch-root")),
+          zeroHash,
+          keccak256(stringToHex("unverified-nullifier-root")),
+          keccak256(stringToHex("unverified-manifest")),
+          keccak256(stringToHex("unverified-public-inputs")),
+          1n,
+          "0x1234",
+        ],
+        { account: outsider.account },
       ),
     );
   });

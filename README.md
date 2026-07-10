@@ -18,6 +18,7 @@ This repository includes:
 - encrypted ballot package utilities;
 - IPFS upload, batch manifest, and data-availability scripts;
 - append-only batch commitments with nullifier-root continuity;
+- a proof-verifier seam for future batch-validity submission;
 - encrypted tally aggregation and local threshold-share tally helpers;
 - tally result/public-input hash binding; and
 - a tally-verifier adapter that requires a real verifier contract before a

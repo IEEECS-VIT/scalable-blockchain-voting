@@ -14,4 +14,6 @@ SNARK.
 
 The TypeScript batching utilities output `batchPublicInputsHash`, which is the
 intended public-input binding for the future batch-validity/state-transition
-circuit. This hash fixes the statement shape; it is not a proof.
+circuit. `BatchCommitment.submitBatchWithProof` can store that hash after a
+configured verifier accepts a proof. This fixes the integration seam; it is
+not a proof implementation.

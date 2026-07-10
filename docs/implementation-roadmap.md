@@ -34,6 +34,7 @@
   fingerprinting fields
 - [x] Upload encrypted packages to IPFS
 - [x] Build deterministic batch manifests and inclusion receipts
+- [x] Add an on-chain verifier seam for proof-gated batch submission
 - [ ] Implement a batch-validity/nullifier-state-transition circuit
 - [x] Add data-availability preflight failure handling
 

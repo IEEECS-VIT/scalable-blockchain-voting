@@ -73,6 +73,11 @@ Records an append-only sequence of CID Merkle roots, nullifier roots, and
 manifest digests. It enforces an authorized batcher and continuity from the
 previous nullifier root.
 
+It also exposes `submitBatchWithProof`, a proof-gated path for the scalable
+design. That path accepts a `batchPublicInputsHash` and proof from a configured
+`IBatchProofVerifier`, and it does not require the sender to be an authorized
+trusted batcher. The repository includes only a test mock for this verifier.
+
 It does **not** prove:
 
 - that every ballot proof is valid;
@@ -81,7 +86,8 @@ It does **not** prove:
 - that the manifest remains available; or
 - that the encrypted aggregate matches the committed ballots.
 
-A batch-validity/nullifier-state proof is required to remove this trust.
+A real batch-validity/nullifier-state proof is required before the proof-gated
+path can remove batcher trust in practice.
 
 ### `packages/crypto`
 
@@ -134,7 +140,7 @@ are reported as blockers.
 | Biometrics | Not implemented | Optional regulated authentication gateway |
 | Ballot encryption | secp256k1 EC-ElGamal-style encrypted vector | Audited election-crypto choice with proof-compatible encoding |
 | Ballot proof | Not implemented | Real circuit proving one valid selection |
-| Batching | Deterministic manifest builder, finalization script, plus trusted root submission | Batch-validity and state-transition proof |
+| Batching | Deterministic manifest builder, trusted root submission, plus verifier seam for proof-gated submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
 | Threshold tally | Local Shamir-style shares plus off-chain DLEQ share proofs | Audited threshold ceremony and verifier-compatible decryption proofs |
 | Encrypted tally aggregation | Local aggregation plus result-hash binding from accepted batch artifacts | Proof-gated aggregation over verified batches |

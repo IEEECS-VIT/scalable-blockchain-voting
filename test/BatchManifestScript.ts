@@ -104,8 +104,13 @@ describe("batch manifest script", function () {
       assert.equal(exitCode, 0);
 
       const output = JSON.parse(Buffer.concat(stdoutChunks).toString()) as {
-        manifest: { batchSize: string; manifestDigest: string };
+        manifest: {
+          batchSize: string;
+          manifestDigest: string;
+          batchPublicInputsHash: string;
+        };
         submitBatchArgs: readonly unknown[];
+        submitBatchWithProofArgsPrefix: readonly unknown[];
         receipts: readonly { contentId: string; proof: readonly unknown[] }[];
       };
 
@@ -113,6 +118,12 @@ describe("batch manifest script", function () {
       assert.match(output.manifest.manifestDigest, /^0x[0-9a-f]{64}$/);
       assert.equal(output.submitBatchArgs.length, 5);
       assert.equal(output.submitBatchArgs[4], "2");
+      assert.equal(output.submitBatchWithProofArgsPrefix.length, 6);
+      assert.equal(
+        output.submitBatchWithProofArgsPrefix[4],
+        output.manifest.batchPublicInputsHash,
+      );
+      assert.equal(output.submitBatchWithProofArgsPrefix[5], "2");
       assert.deepEqual(
         output.receipts.map((receipt) => receipt.contentId).sort(),
         ["ipfs://bafy-demo-a", "ipfs://bafy-demo-b"],
