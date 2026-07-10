@@ -86,6 +86,16 @@ Use `--allow-blocked` when you want a JSON report without failing the command:
 npm run check:readiness -- path/to/readiness.json --allow-blocked
 ```
 
+`generate_demo_fixture.ts` creates a deterministic local demo fixture containing
+registration, vote package, batch, encrypted tally, decryption-share, and tally
+result artifacts. It uses placeholder proof bytes and labels the output as
+local-only, so it is useful for demos and script testing but not proof
+verification.
+
+```bash
+npm run demo:fixture -- ./demo-output
+```
+
 `build_tally_input.ts` validates accepted batch artifacts against their package
 files, aggregates only those encrypted ballots, and outputs the encrypted tally
 public inputs for the future tally proof.

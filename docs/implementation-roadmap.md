@@ -57,6 +57,7 @@
 - [ ] Implement a real sponsored ERC-4337 UserOperation on Amoy
 - [ ] Add explorer links and clearly labeled failure demonstrations
 - [x] Add a final-demo readiness gate for real-vs-mock artifacts
+- [x] Add a deterministic local demo fixture generator
 - [ ] Add complete deployment and demo documentation
 
 ## Definition of a credible final demo

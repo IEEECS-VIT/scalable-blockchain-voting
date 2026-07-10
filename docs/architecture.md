@@ -138,6 +138,11 @@ requires real proof artifacts, non-zero verifier/paymaster addresses, a real
 sponsored UserOperation hash, and all planned frontend pages. Mock artifacts
 are reported as blockers.
 
+`generate_demo_fixture.ts` creates a deterministic local artifact set for
+walking through the pipeline without live services. It is useful for demos and
+script regression checks, but it intentionally uses placeholder proof bytes
+and must not be presented as proof verification.
+
 ## Demo versus future production
 
 | Capability | Current status | Required stronger version |
