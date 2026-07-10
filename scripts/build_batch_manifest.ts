@@ -97,6 +97,14 @@ async function main() {
       manifest.manifestDigest,
       manifest.batchSize,
     ],
+    submitBatchWithProofArgsPrefix: [
+      manifest.cidMerkleRoot,
+      manifest.previousNullifierRoot,
+      manifest.nullifierRoot,
+      manifest.manifestDigest,
+      manifest.batchPublicInputsHash,
+      manifest.batchSize,
+    ],
     receipts,
   }, jsonReplacer, 2));
 }

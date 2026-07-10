@@ -35,9 +35,11 @@ npm run submit:registration-relayer -- path/to/registration-request-artifact.jso
 RELAYER_PRIVATE_KEY=0x... RELAYER_RPC_URL=https://... npm run submit:registration-relayer -- path/to/registration-request-artifact.json
 ```
 
-`build_batch_manifest.ts` turns uploaded package references into the trusted
-batcher's finalization artifact: the deterministic manifest, inclusion
-receipts, and the exact `BatchCommitment.submitBatch` arguments.
+`build_batch_manifest.ts` turns uploaded package references into the batcher's
+finalization artifact: the deterministic manifest, inclusion receipts, the
+exact trusted-demo `BatchCommitment.submitBatch` arguments, and the
+`submitBatchWithProof` argument prefix that should be paired with a real batch
+proof later.
 
 Input shape:
 
