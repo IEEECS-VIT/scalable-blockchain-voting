@@ -78,6 +78,14 @@ npm run check:readiness -- path/to/readiness.json
 
 See [docs/demo-readiness.md](docs/demo-readiness.md) for the artifact format.
 
+Local deterministic demo fixture:
+
+```bash
+npm run demo:fixture -- ./demo-output
+```
+
+This fixture is useful for script demos, but its proof bytes are placeholders.
+
 ## Repository layout
 
 ```text
