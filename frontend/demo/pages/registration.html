@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Registration | Scalable Voting Demo</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <a href="../index.html">← Demo home</a>
+      <section class="hero">
+        <div class="eyebrow">Registration page</div>
+        <h1>Bind anonymous eligibility to one ephemeral voting key.</h1>
+        <p>
+          The voter creates an election-scoped identity nullifier and ephemeral
+          voting key. A relayer submits the registration request so the voter’s
+          identifiable wallet does not directly publish the credential binding.
+        </p>
+        <div class="warning">
+          Simulation boundary: this page expects a real anonymous eligibility
+          proof later. The current fixture uses placeholder proof bytes and is
+          not an Anon Aadhaar proof.
+        </div>
+      </section>
+      <section class="grid">
+        <article class="step">
+          <h2>Inputs</h2>
+          <ul class="status-list">
+            <li><span class="ok">✓</span><span>electionId and identityNullifier</span></li>
+            <li><span class="ok">✓</span><span>ephemeral votingKey</span></li>
+            <li><span class="pending">!</span><span>real Anon Aadhaar proof pending</span></li>
+          </ul>
+        </article>
+        <article class="step">
+          <h2>Relayer artifact</h2>
+          <div class="mono">npm run build:registration-request -- registration-request-input.json</div>
+          <p>
+            Output includes publicInputsHash and registerWithProof calldata for
+            a dedicated relayer account.
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

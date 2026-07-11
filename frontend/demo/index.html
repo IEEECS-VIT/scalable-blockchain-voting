@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scalable Blockchain Voting Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="eyebrow">Privacy-preserving voting pipeline</div>
+        <h1>Encrypted ballots, batch commitments, and verifiable tally seams.</h1>
+        <p>
+          This static UI is a local demo companion for the repository scripts.
+          It shows the intended flow and the trust boundaries without claiming
+          that placeholder proofs are real SNARK verification.
+          It is not claiming production election readiness.
+        </p>
+        <div class="warning">
+          Simulation boundary: this UI uses generated local artifacts and mock
+          verifier labels. Real final-demo readiness still requires real
+          Anon Aadhaar, ballot, batch, and tally proof artifacts.
+        </div>
+        <nav class="nav" aria-label="Demo pages">
+          <a href="./pages/registration.html">Registration</a>
+          <a href="./pages/voting.html">Voting</a>
+          <a href="./pages/receipt.html">Receipt</a>
+          <a href="./pages/batch.html">Batch</a>
+          <a href="./pages/tally.html">Tally</a>
+          <a href="./pages/verification.html">Verification</a>
+        </nav>
+      </section>
+
+      <section class="grid" aria-label="Pipeline summary">
+        <article class="card">
+          <div class="badge">1</div>
+          <h2>Anonymous registration seam</h2>
+          <p>
+            The repo binds election ID, identity nullifier, and ephemeral voting
+            key into a relayer-ready request. Real Anon Aadhaar is still pending.
+          </p>
+        </article>
+        <article class="card">
+          <div class="badge">2</div>
+          <h2>Encrypted ballot package</h2>
+          <p>
+            Client-side EC-ElGamal-style encrypted vote vectors are packaged
+            without timestamps, browser fingerprints, or device identifiers.
+          </p>
+        </article>
+        <article class="card">
+          <div class="badge">3</div>
+          <h2>Batch and tally seams</h2>
+          <p>
+            Batch and tally public-input hashes are built locally and exposed to
+            verifier adapter contracts. Real circuits are the remaining blocker.
+          </p>
+        </article>
+      </section>
+
+      <footer>
+        Generate local artifacts with
+        <span class="mono">npm run demo:fixture -- ./demo-output</span>.
+      </footer>
+    </main>
+  </body>
+</html>

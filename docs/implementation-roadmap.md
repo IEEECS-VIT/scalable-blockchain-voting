@@ -53,12 +53,16 @@
 
 ## Milestone 6 - User experience
 
-- [ ] Build registration, voting, receipt, batch, tally, and verification pages
+- [x] Build static demo pages for registration, voting, receipt, batch, tally,
+  and verification
+- [ ] Replace static demo pages with a production frontend app
 - [ ] Implement a real sponsored ERC-4337 UserOperation on Amoy
-- [ ] Add explorer links and clearly labeled failure demonstrations
+- [x] Add clearly labeled failure demonstrations and trust-boundary UI labels
+- [ ] Add live explorer links after Amoy deployment
 - [x] Add a final-demo readiness gate for real-vs-mock artifacts
 - [x] Add a deterministic local demo fixture generator
-- [ ] Add complete deployment and demo documentation
+- [x] Add local demo runbook and research-alignment review
+- [ ] Add complete live deployment documentation with real addresses
 
 ## Definition of a credible final demo
 

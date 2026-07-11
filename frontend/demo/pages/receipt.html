@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Receipt | Scalable Voting Demo</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <a href="../index.html">← Demo home</a>
+      <section class="hero">
+        <div class="eyebrow">Receipt page</div>
+        <h1>Give the voter a private inclusion receipt.</h1>
+        <p>
+          The receipt proves a vote package was included in a batch manifest
+          using a Merkle proof, without revealing the selected candidate.
+        </p>
+        <div class="warning">
+          Failure demonstration: if the package digest or Merkle sibling changes,
+          receipt verification fails against the committed CID Merkle root.
+          Full proof-system receipt verification is still pending real batch
+          validity proofs.
+        </div>
+      </section>
+      <section class="grid">
+        <article class="step">
+          <h2>Receipt contains</h2>
+          <ul class="status-list">
+            <li><span class="ok">✓</span><span>batchManifestDigest</span></li>
+            <li><span class="ok">✓</span><span>packageDigest and leafHash</span></li>
+            <li><span class="ok">✓</span><span>Merkle proof path</span></li>
+          </ul>
+        </article>
+        <article class="step">
+          <h2>Artifact</h2>
+          <div class="mono">batch-artifact.json → receipts[]</div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

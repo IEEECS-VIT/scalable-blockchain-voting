@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Batch | Scalable Voting Demo</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <a href="../index.html">← Demo home</a>
+      <section class="hero">
+        <div class="eyebrow">Batch page</div>
+        <h1>Commit many encrypted vote packages as one batch.</h1>
+        <p>
+          The batcher builds deterministic manifests, checks nullifier
+          continuity, creates inclusion receipts, and prepares the
+          submitBatchWithProof argument prefix.
+        </p>
+        <div class="warning">
+          Simulation boundary: the trusted batch path is not trustless. The
+          proof-gated seam exists, but a real batch-validity/nullifier-state
+          circuit is still required.
+        </div>
+      </section>
+      <section class="grid">
+        <article class="step">
+          <h2>Commands</h2>
+          <div class="mono">npm run build:batch -- batch-input.json</div>
+          <div class="mono">npm run check:data -- batch-input.json</div>
+        </article>
+        <article class="step">
+          <h2>Failure demonstrations</h2>
+          <ul class="status-list">
+            <li><span class="pending">!</span><span>duplicate nullifier rejected</span></li>
+            <li><span class="pending">!</span><span>nullifier-root discontinuity rejected</span></li>
+            <li><span class="pending">!</span><span>missing local/IPFS package rejected</span></li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
