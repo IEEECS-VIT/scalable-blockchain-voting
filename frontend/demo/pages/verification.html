@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verification | Scalable Voting Demo</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <a href="../index.html">← Demo home</a>
+      <section class="hero">
+        <div class="eyebrow">Verification page</div>
+        <h1>Show exactly what is verified, mocked, and still blocked.</h1>
+        <p>
+          The readiness gate prevents the final demo from claiming completion
+          while proof artifacts, verifier addresses, sponsored UserOperations,
+          or frontend pages are missing.
+        </p>
+        <div class="warning danger">
+          Failure demonstration: mock verifier artifacts and zero verifier
+          addresses are blockers, not acceptable production evidence.
+        </div>
+      </section>
+      <section class="grid">
+        <article class="step">
+          <h2>Readiness command</h2>
+          <div class="mono">npm run check:readiness -- readiness.json</div>
+          <p>Use <span class="mono">--allow-blocked</span> for a non-failing status report.</p>
+        </article>
+        <article class="step">
+          <h2>Remaining blockers</h2>
+          <ul class="status-list">
+            <li><span class="pending">!</span><span>real Anon Aadhaar verifier</span></li>
+            <li><span class="pending">!</span><span>real ballot, batch, and tally circuits</span></li>
+            <li><span class="pending">!</span><span>real ERC-4337 sponsored UserOperation</span></li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

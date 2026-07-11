@@ -143,6 +143,10 @@ walking through the pipeline without live services. It is useful for demos and
 script regression checks, but it intentionally uses placeholder proof bytes
 and must not be presented as proof verification.
 
+`frontend/demo/` contains a static demo UI for registration, voting, receipt,
+batch, tally, and verification pages. It is a communication and walkthrough
+layer, not a production Next.js app.
+
 ## Demo versus future production
 
 | Capability | Current status | Required stronger version |
@@ -159,3 +163,4 @@ and must not be presented as proof verification.
 | Data availability | Local/IPFS-gateway preflight script | Multi-provider persistence strategy |
 | Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |
 | Final-demo readiness | Strict artifact gate for real-vs-mock status | Independent audit plus deployed end-to-end walkthrough |
+| Frontend | Static labeled demo UI | Production app wired to wallet, relayer, storage, and verifier artifacts |

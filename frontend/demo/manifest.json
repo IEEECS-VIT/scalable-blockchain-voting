@@ -1,0 +1,36 @@
+{
+  "status": "local-demo-ui",
+  "warning": "Static demo UI only. Proof bytes and verifier acceptances remain placeholders until real circuits and deployed verifier contracts are provided.",
+  "pages": [
+    {
+      "id": "registration",
+      "label": "Registration",
+      "path": "pages/registration.html"
+    },
+    {
+      "id": "voting",
+      "label": "Voting",
+      "path": "pages/voting.html"
+    },
+    {
+      "id": "receipt",
+      "label": "Receipt",
+      "path": "pages/receipt.html"
+    },
+    {
+      "id": "batch",
+      "label": "Batch",
+      "path": "pages/batch.html"
+    },
+    {
+      "id": "tally",
+      "label": "Tally",
+      "path": "pages/tally.html"
+    },
+    {
+      "id": "verification",
+      "label": "Verification",
+      "path": "pages/verification.html"
+    }
+  ]
+}

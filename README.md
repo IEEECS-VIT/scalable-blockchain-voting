@@ -26,7 +26,8 @@ This repository includes:
   result can be marked verified.
 
 The biometric screen, Anon Aadhaar integration, real ballot/batch/tally
-circuits, ERC-4337 sponsorship, and frontend are not implemented yet.
+circuits, ERC-4337 sponsorship, and production frontend are not implemented
+yet.
 
 ## Important security boundary
 
@@ -86,6 +87,17 @@ npm run demo:fixture -- ./demo-output
 
 This fixture is useful for script demos, but its proof bytes are placeholders.
 
+Static demo UI:
+
+```text
+frontend/demo/index.html
+```
+
+Runbook and alignment review:
+
+- [docs/demo-runbook.md](docs/demo-runbook.md)
+- [docs/research-alignment-review.md](docs/research-alignment-review.md)
+
 ## Repository layout
 
 ```text
@@ -94,7 +106,7 @@ ignition/    Repeatable deployment modules
 test/        Contract tests
 circuits/    Future Circom circuits
 packages/    Future shared cryptography and Merkle utilities
-frontend/    Future Next.js application
+frontend/    Static demo UI and future production frontend
 docs/        Architecture, scope, and implementation roadmap
 ```
 

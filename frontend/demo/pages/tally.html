@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tally | Scalable Voting Demo</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <a href="../index.html">← Demo home</a>
+      <section class="hero">
+        <div class="eyebrow">Tally page</div>
+        <h1>Aggregate encrypted ballots, then decrypt through trustee shares.</h1>
+        <p>
+          The local pipeline aggregates accepted encrypted ballots, verifies
+          DLEQ-style decryption share proofs, and builds result/public-input
+          hashes for the future tally verifier.
+        </p>
+        <div class="warning">
+          Simulation boundary: local DLEQ checks are not an audited threshold
+          ceremony or an on-chain tally SNARK.
+        </div>
+      </section>
+      <section class="grid">
+        <article class="step">
+          <h2>Commands</h2>
+          <div class="mono">npm run build:tally -- tally-input.json</div>
+          <div class="mono">npm run build:tally-result -- tally-result-input.json</div>
+        </article>
+        <article class="step">
+          <h2>Current demo output</h2>
+          <ul class="status-list">
+            <li><span class="ok">✓</span><span>aggregateCiphertextDigest</span></li>
+            <li><span class="ok">✓</span><span>resultHash</span></li>
+            <li><span class="ok">✓</span><span>tallyProofPublicInputsHash</span></li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
