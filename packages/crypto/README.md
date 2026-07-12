@@ -6,6 +6,8 @@ batcher, IPFS scripts, and circuits must agree on.
 Implemented now:
 
 - secp256k1 EC-ElGamal-style encrypted vote vectors;
+- proof-compatible BabyJubJub EC-ElGamal ballot encryption, circuit witness
+  construction, Poseidon package commitments, and public-signal hashing;
 - deterministic public-key hashing;
 - ballot-proof public-input hashing bound to election ID, candidate list,
   nullifier, and ciphertext;
@@ -29,7 +31,6 @@ Implemented now:
 
 Not implemented yet:
 
-- real ballot-validity proof generation;
 - real batch-validity/nullifier-state circuit;
 - an on-chain tally/decryption verifier; or
 - IPFS download and persistence monitoring.

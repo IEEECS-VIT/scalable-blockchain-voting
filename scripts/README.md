@@ -3,6 +3,22 @@
 Deployment uses the repeatable Hardhat Ignition module in
 `ignition/modules/VotingSystem.ts`.
 
+`setup_ballot_circuit.ts` compiles the real BabyJubJub ballot-validity circuit,
+runs a local Groth16 testnet ceremony, exports the proving artifacts and
+generated Solidity verifier, then refreshes the verifier-bound test fixture.
+`build_ballot_circuit_input.ts` creates a
+deterministic circuit witness, and `generate_ballot_proof.ts` emits proof JSON,
+public signals, Solidity-compatible proof bytes, and the adapter hash.
+
+```bash
+npm run circuit:setup:ballot
+npm run circuit:input:ballot -- ./ballot-input.json 1
+npm run proof:ballot -- ./ballot-input.json ./ballot-proof-output
+```
+
+Candidate indices are `0` through `3`. The local ceremony is appropriate for
+the zero-cost testnet demo, not a production election.
+
 `upload_vote_package.ts` validates a vote-package JSON file, rewrites it into
 canonical JSON, and uploads that exact content through an IPFS HTTP API. It
 prints the resulting `ipfs://...` content ID and the package digest.

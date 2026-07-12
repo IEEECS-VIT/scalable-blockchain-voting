@@ -34,10 +34,6 @@ export default buildModule("VotingSystem", (m) => {
     "batchProofVerifier",
     zeroAddress,
   );
-  const ballotProofVerifier = m.getParameter<Address>(
-    "ballotProofVerifier",
-    zeroAddress,
-  );
   const votingStartsAt = m.getParameter(
     "votingStartsAt",
     1_900_000_000n,
@@ -58,6 +54,10 @@ export default buildModule("VotingSystem", (m) => {
     electionId,
     owner,
     eligibilityVerifier,
+  ]);
+  const ballotGroth16Verifier = m.contract("BallotGroth16Verifier");
+  const ballotProofVerifier = m.contract("BallotGroth16VerifierAdapter", [
+    ballotGroth16Verifier,
   ]);
   const votingContract = m.contract("VotingContract", [
     electionId,
@@ -81,6 +81,8 @@ export default buildModule("VotingSystem", (m) => {
     electionConfig,
     voterRegistry,
     votingContract,
+    ballotGroth16Verifier,
+    ballotProofVerifier,
     batchCommitment,
     tallyVerifier,
   };
