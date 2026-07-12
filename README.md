@@ -15,7 +15,8 @@ This repository includes:
 - proof-based registration calldata generation for relayer submission;
 - dry-run/live script support for a dedicated registration relayer account;
 - a direct ballot-commitment path for local contract testing;
-- a ballot-validity verifier seam for proof-gated direct ballot submission;
+- a real four-candidate BabyJubJub/Groth16 ballot-validity circuit, generated
+  Solidity verifier, and proof-gated direct ballot submission;
 - encrypted ballot package utilities;
 - IPFS upload, batch manifest, and data-availability scripts;
 - append-only batch commitments with nullifier-root continuity;
@@ -25,9 +26,9 @@ This repository includes:
 - a tally-verifier adapter that requires a real verifier contract before a
   result can be marked verified.
 
-The biometric screen, Anon Aadhaar integration, real ballot/batch/tally
-circuits, ERC-4337 sponsorship, and production frontend are not implemented
-yet.
+The Anon Aadhaar integration, real batch/tally circuits, ERC-4337 sponsorship,
+and production frontend are not implemented yet. The biometric flow remains a
+clearly labeled demo simulation.
 
 ## Important security boundary
 
@@ -50,6 +51,20 @@ cp .env.example .env
 npm run compile
 npm test
 ```
+
+Generate a new real ballot proof with the committed public testnet proving
+artifacts:
+
+```bash
+npm run circuit:input:ballot -- ./ballot-input.json 1
+npm run proof:ballot -- ./ballot-input.json ./ballot-proof-output
+```
+
+To regenerate the proving key, verifier, and matching test fixture, run
+`npm run circuit:setup:ballot`. This performs a fresh local testnet ceremony;
+it is not a production multi-party key ceremony. The public proving key and
+WASM are committed so normal demo proof generation does not require rerunning
+that ceremony.
 
 Local deployment:
 
@@ -104,8 +119,8 @@ Runbook and alignment review:
 contracts/   Solidity contracts and verifier interfaces
 ignition/    Repeatable deployment modules
 test/        Contract tests
-circuits/    Future Circom circuits
-packages/    Future shared cryptography and Merkle utilities
+circuits/    Real ballot circuit and planned batch/tally circuits
+packages/    Shared cryptography, proof-input, and Merkle utilities
 frontend/    Static demo UI and future production frontend
 docs/        Architecture, scope, and implementation roadmap
 ```

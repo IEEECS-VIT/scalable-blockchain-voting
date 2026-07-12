@@ -25,9 +25,11 @@
 - [x] Specify the encrypted vote vector and curve
 - [x] Implement client-side EC-ElGamal encryption
 - [x] Add an on-chain verifier seam for proof-gated direct ballot submission
-- [ ] Build a real ballot-validity circuit
+- [x] Build a real ballot-validity circuit
 - [x] Bind election ID, candidate-list hash, ciphertext, and nullifier
 - [x] Add malformed-ballot and duplicate-nullifier tests
+- [ ] Migrate the canonical vote-package, batch, and tally pipeline from the
+  legacy secp256k1 demo path to the proof-compatible BabyJubJub ciphertext
 
 ## Milestone 4 - Storage and batching
 

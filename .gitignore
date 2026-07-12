@@ -27,6 +27,19 @@ artifacts/
 cache/
 ignition/deployments/
 
+# Locally generated zero-knowledge proving artifacts. The circuit source and
+# generated Solidity verifier are committed; ceremony output is reproducible
+# but intentionally not stored in git.
+circuits/build/*
+!circuits/build/ballot_validity/
+circuits/build/ballot_validity/*
+!circuits/build/ballot_validity/ballot_validity_final.zkey
+!circuits/build/ballot_validity/verification_key.json
+!circuits/build/ballot_validity/ballot_validity_js/
+circuits/build/ballot_validity/ballot_validity_js/*
+!circuits/build/ballot_validity/ballot_validity_js/ballot_validity.wasm
+circuits/ceremony/
+
 # nyc test coverage
 .nyc_output
 

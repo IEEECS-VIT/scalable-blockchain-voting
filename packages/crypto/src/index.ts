@@ -12,6 +12,8 @@ import {
   zeroHash,
 } from "viem";
 
+export * from "./proofCompatibleBallot.js";
+
 export type Hex = `0x${string}`;
 export type Bytes32 = Hex;
 export type Address = Hex;

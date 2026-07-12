@@ -67,11 +67,11 @@ not the vote or encrypted package.
 
 This is a reference path, not the scalable batch path.
 
-It also exposes `submitBallotWithProof`, a direct proof-gated seam for the
-future ballot-validity verifier. That path stores the ballot proof public-input
-hash beside the nullifier after a configured `IBallotProofVerifier` accepts
-the proof. The repository includes only a test mock verifier for this seam; it
-is not a real ballot-validity circuit.
+It also exposes `submitBallotWithProof`, which is connected to a generated
+Groth16 verifier through `BallotGroth16VerifierAdapter`. The adapter verifies
+the proof and explicitly checks that its election, ballot nullifier, and
+Poseidon package commitment match the values accepted by `VotingContract`.
+The trusted direct path remains only for local/reference tests.
 
 ### `BatchCommitment`
 
@@ -101,17 +101,20 @@ Defines the off-chain vote-package and batch-manifest formats used before data
 is submitted to `BatchCommitment`. Vote packages intentionally exclude
 timestamps, device IDs, client versions, and other fingerprinting metadata.
 
-The package currently provides secp256k1 EC-ElGamal-style encrypted vote
-vectors, deterministic public-key hashes, ballot-proof public-input hashing,
+The package currently provides the original secp256k1 EC-ElGamal-style tally
+demo plus a proof-compatible BabyJubJub ballot path, deterministic public-key
+hashes, ballot-proof public-input hashing,
 local demo decryption, homomorphic aggregation helpers, threshold share
 generation, DLEQ-checked partial decryption shares, deterministic hashes,
 canonical vote-package JSON, Merkle roots, inclusion receipts,
 duplicate-nullifier checks, batch public-input hashing, encrypted tally input
 aggregation, tally-result hash binding, and data-availability preflight checks.
 
-It still does not prove ballot validity, prove batch validity, or verify a full
-tally statement on-chain. Those pieces need real circuits and verifier
-contracts.
+Ballot validity is now proved for the four-candidate BabyJubJub path. The
+canonical batch/tally artifact pipeline still uses the older secp256k1 scheme,
+so migrating that pipeline to the proof-compatible ciphertext format is a
+real remaining integration task. Batch validity and the full tally statement
+also still need circuits and verifier contracts.
 
 ### `TallyVerifier`
 
@@ -153,8 +156,8 @@ layer, not a production Next.js app.
 | --- | --- | --- |
 | Eligibility | Trusted demo registrar plus verifier interface seam | Audited anonymous eligibility verifier |
 | Biometrics | Not implemented | Optional regulated authentication gateway |
-| Ballot encryption | secp256k1 EC-ElGamal-style encrypted vector | Audited election-crypto choice with proof-compatible encoding |
-| Ballot proof | Verifier seam plus test mock only | Real circuit proving one valid selection |
+| Ballot encryption | Legacy secp256k1 tally demo plus four-candidate proof-compatible BabyJubJub EC-ElGamal | Unify canonical batch/tally artifacts on the proof-compatible scheme |
+| Ballot proof | Real Groth16 one-hot/encryption proof, generated Solidity verifier, and contract binding adapter | Independent circuit review and production multi-party setup |
 | Batching | Deterministic manifest builder, trusted root submission, plus verifier seam for proof-gated submission | Batch-validity and state-transition proof |
 | Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
 | Threshold tally | Local Shamir-style shares plus off-chain DLEQ share proofs | Audited threshold ceremony and verifier-compatible decryption proofs |

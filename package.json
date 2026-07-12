@@ -8,7 +8,12 @@
   "scripts": {
     "clean": "hardhat clean",
     "compile": "hardhat compile",
-    "test:crypto": "node --test --import tsx test/BallotEncryption.ts test/CryptoBatching.ts test/IpfsUploadScript.ts test/BatchManifestScript.ts test/DataAvailabilityScript.ts test/TallyAggregationScript.ts test/DemoReadinessScript.ts test/RegistrationRelayerRequestScript.ts test/DemoFixtureScript.ts test/FrontendDemoFiles.ts",
+    "circuit:compile:ballot": "circom2 circuits/ballot_validity.circom --r1cs --wasm --sym -o circuits/build/ballot_validity",
+    "circuit:setup:ballot": "node --import tsx scripts/setup_ballot_circuit.ts",
+    "circuit:input:ballot": "node --import tsx scripts/build_ballot_circuit_input.ts",
+    "proof:ballot": "node --import tsx scripts/generate_ballot_proof.ts",
+    "test:crypto": "node --test --import tsx test/BallotEncryption.ts test/BallotValidityCircuit.ts test/CryptoBatching.ts test/IpfsUploadScript.ts test/BatchManifestScript.ts test/DataAvailabilityScript.ts test/TallyAggregationScript.ts test/DemoReadinessScript.ts test/RegistrationRelayerRequestScript.ts test/DemoFixtureScript.ts test/FrontendDemoFiles.ts",
+    "test:proof:ballot": "hardhat test test/BallotGroth16Proof.ts test/BallotValidityCircuit.ts",
     "test": "hardhat test",
     "typecheck": "tsc --noEmit",
     "upload:vote-package": "node --import tsx scripts/upload_vote_package.ts",
@@ -26,14 +31,18 @@
   "devDependencies": {
     "@noble/curves": "^1.4.2",
     "@noble/hashes": "^1.7.1",
-    "@nomicfoundation/hardhat-ignition": "^3.1.7",
+    "@nomicfoundation/hardhat-ignition": "^3.1.8",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
     "@openzeppelin/contracts": "^5.6.1",
     "@types/node": "^22.20.0",
+    "circom2": "^0.2.23",
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
     "hardhat": "^3.9.0",
+    "snarkjs": "^0.7.6",
     "tsx": "^4.22.4",
     "typescript": "~6.0.3",
-    "viem": "^2.53.1"
+    "viem": "^2.55.0"
   },
   "engines": {
     "node": ">=22.13.0"

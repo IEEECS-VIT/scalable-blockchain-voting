@@ -7,7 +7,10 @@ import {VoterRegistry} from "./VoterRegistry.sol";
 interface IBallotProofVerifier {
     function verify(
         bytes calldata proof,
-        bytes32 publicInputsHash
+        bytes32 publicInputsHash,
+        bytes32 electionId,
+        bytes32 ballotNullifier,
+        bytes32 votePackageDigest
     ) external view returns (bool);
 }
 
@@ -88,7 +91,13 @@ contract VotingContract is Ownable {
         }
         IBallotProofVerifier verifier = ballotProofVerifier;
         if (address(verifier) == address(0)) revert NoBallotVerifier();
-        if (!verifier.verify(proof, ballotPublicInputsHash)) {
+        if (!verifier.verify(
+            proof,
+            ballotPublicInputsHash,
+            electionId,
+            ballotNullifier,
+            votePackageDigest
+        )) {
             revert BallotProofRejected();
         }
         _commitBallot(

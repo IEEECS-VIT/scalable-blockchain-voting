@@ -152,7 +152,6 @@ addresses, a sponsored UserOperation, and frontend evidence are provided.
 Do not claim:
 
 - real Anon Aadhaar verification;
-- real ballot-validity proof;
 - real batch-validity/nullifier-state proof;
 - real tally SNARK;
 - real ERC-4337 sponsorship; or
@@ -161,7 +160,8 @@ Do not claim:
 Correct wording:
 
 ```text
-Zero-cost testnet demo with encrypted ballot packages, relayer-ready
-registration, batch commitments, verifier adapter seams, local threshold tally
-helpers, and a strict readiness gate for real-vs-mock artifacts.
+Zero-cost testnet demo with one real BabyJubJub/Groth16 ballot-validity path,
+encrypted batch artifacts, relayer-ready registration, batch commitments,
+local threshold tally helpers, and a strict readiness gate for remaining
+real-vs-mock artifacts.
 ```
