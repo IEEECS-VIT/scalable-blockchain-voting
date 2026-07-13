@@ -9,6 +9,7 @@ interface IBallotProofVerifier {
         bytes calldata proof,
         bytes32 publicInputsHash,
         bytes32 electionId,
+        bytes32 candidateListHash,
         bytes32 ballotNullifier,
         bytes32 votePackageDigest
     ) external view returns (bool);
@@ -20,12 +21,14 @@ interface IBallotProofVerifier {
 contract VotingContract is Ownable {
     error InvalidDigest();
     error InvalidBallotPublicInputs();
+    error NonCanonicalBallotNullifier();
     error NoBallotVerifier();
     error BallotProofRejected();
     error NullifierAlreadyUsed(bytes32 ballotNullifier);
     error UnauthorizedVotingKey();
 
     bytes32 public immutable electionId;
+    bytes32 public immutable candidateListHash;
     VoterRegistry public immutable voterRegistry;
     IBallotProofVerifier public ballotProofVerifier;
 
@@ -42,11 +45,13 @@ contract VotingContract is Ownable {
 
     constructor(
         bytes32 electionId_,
+        bytes32 candidateListHash_,
         VoterRegistry voterRegistry_,
         address initialOwner,
         IBallotProofVerifier initialBallotProofVerifier
     ) Ownable(initialOwner) {
         electionId = electionId_;
+        candidateListHash = candidateListHash_;
         voterRegistry = voterRegistry_;
         ballotProofVerifier = initialBallotProofVerifier;
         emit BallotProofVerifierChanged(address(initialBallotProofVerifier));
@@ -89,12 +94,19 @@ contract VotingContract is Ownable {
         if (ballotPublicInputsHash == bytes32(0)) {
             revert InvalidBallotPublicInputs();
         }
+        if (
+            uint256(ballotNullifier) >=
+            21888242871839275222246405745257275088548364400416034343698204186575808495617
+        ) {
+            revert NonCanonicalBallotNullifier();
+        }
         IBallotProofVerifier verifier = ballotProofVerifier;
         if (address(verifier) == address(0)) revert NoBallotVerifier();
         if (!verifier.verify(
             proof,
             ballotPublicInputsHash,
             electionId,
+            candidateListHash,
             ballotNullifier,
             votePackageDigest
         )) {

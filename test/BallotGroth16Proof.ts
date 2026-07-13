@@ -18,7 +18,11 @@ const fixture = JSON.parse(
   ),
 ) as BallotProofFixture;
 const electionId = keccak256(stringToHex("scalable-voting-demo-2026"));
-const ballotNullifier = keccak256(stringToHex("demo-ballot-nullifier-1"));
+const candidateListHash = keccak256(
+  stringToHex("candidate-a,candidate-b,candidate-c,candidate-d"),
+);
+const ballotNullifier =
+  `0x${BigInt(fixture.publicSignals[2]!).toString(16).padStart(64, "0")}` as Hex;
 const packageCommitment =
   `0x${BigInt(fixture.publicSignals[3]!).toString(16).padStart(64, "0")}` as Hex;
 
@@ -37,6 +41,7 @@ describe("real Groth16 ballot validity proof", async function () {
         fixture.proof,
         fixture.publicInputsHash,
         electionId,
+        candidateListHash,
         ballotNullifier,
         packageCommitment,
       ]),
@@ -47,7 +52,8 @@ describe("real Groth16 ballot validity proof", async function () {
         fixture.proof,
         fixture.publicInputsHash,
         electionId,
-        keccak256(stringToHex("different-nullifier")),
+        keccak256(stringToHex("different-candidate-list")),
+        ballotNullifier,
         packageCommitment,
       ]),
       false,
@@ -57,6 +63,18 @@ describe("real Groth16 ballot validity proof", async function () {
         fixture.proof,
         fixture.publicInputsHash,
         electionId,
+        candidateListHash,
+        `0x${"01".padStart(64, "0")}`,
+        packageCommitment,
+      ]),
+      false,
+    );
+    assert.equal(
+      await adapter.read.verify([
+        fixture.proof,
+        fixture.publicInputsHash,
+        electionId,
+        candidateListHash,
         ballotNullifier,
         keccak256(stringToHex("different-package")),
       ]),
@@ -70,6 +88,7 @@ describe("real Groth16 ballot validity proof", async function () {
         changedProof,
         fixture.publicInputsHash,
         electionId,
+        candidateListHash,
         ballotNullifier,
         packageCommitment,
       ]),
@@ -89,6 +108,7 @@ describe("real Groth16 ballot validity proof", async function () {
     ]);
     const voting = await viem.deployContract("VotingContract", [
       electionId,
+      candidateListHash,
       registry.address,
       owner.account.address,
       adapter.address,
@@ -98,6 +118,18 @@ describe("real Groth16 ballot validity proof", async function () {
     await registry.write.register(
       [identityNullifier, voter.account.address],
       { account: owner.account },
+    );
+    await assert.rejects(
+      voting.write.submitBallotWithProof(
+        [
+          identityNullifier,
+          `0x${"ff".repeat(32)}`,
+          packageCommitment,
+          fixture.publicInputsHash,
+          fixture.proof,
+        ],
+        { account: voter.account },
+      ),
     );
     await voting.write.submitBallotWithProof(
       [

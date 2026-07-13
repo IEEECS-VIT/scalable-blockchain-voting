@@ -1,167 +1,83 @@
-# Demo runbook
-
-This runbook is for the current local/testnet demo state. It is intentionally
-strict about what is real, what is mocked, and what is still blocked.
+# Complete demo runbook
 
 ## 1. Verify the repository
-
-Use Node 22:
 
 ```bash
 source ~/.nvm/nvm.sh
 nvm use 22
-```
-
-Run the full check set:
-
-```bash
 npm run typecheck
 npm run test:crypto
 npm test
 npx hardhat test --no-compile
 ```
 
-Expected current result:
+All enabled tests must pass. The optional IPFS upload test is skipped when the
+environment does not allow a localhost listener; enable it with
+`RUN_IPFS_UPLOAD_SCRIPT_TEST=1`.
 
-```text
-35 passing
-1 skipped
-```
-
-The skipped test is the optional local IPFS HTTP listener test.
-
-## 2. Generate a deterministic local fixture
+## 2. Run the complete local proof flow
 
 ```bash
-npm run demo:fixture -- ./demo-output
+npm run demo:serve
 ```
 
-Important files:
+Open `http://127.0.0.1:8080`. The command first regenerates:
 
-- `election.json`
-- `registration-request-artifact.json`
-- `vote-1.json`, `vote-2.json`, `vote-3.json`
-- `batch-artifact.json`
-- `tally-artifact.json`
-- `decryption-share-1.json`, `decryption-share-2.json`
-- `tally-result-artifact.json`
+- two real Groth16 proof-bound BabyJubJub vote packages;
+- one deterministic aggregate-bound batch and two inclusion receipts;
+- the encrypted aggregate; and
+- five DLEQ-verified shares from a deterministic 5-of-9 test keyset, producing
+  tally `[0, 1, 1, 0]`.
 
-The fixture uses placeholder proof bytes. It is for local flow demonstration,
-not proof verification.
+Use the Registration page to show biometric failure first and success second.
+The visible audit JSON demonstrates that no fingerprint, image, Aadhaar number,
+or raw biometric field is retained. Then inspect the proof package, receipt,
+threshold result, and public status panel.
 
-## 3. Walk through the UI
-
-Open:
-
-```text
-frontend/demo/index.html
-```
-
-The static demo UI includes:
-
-- registration page;
-- voting page;
-- receipt page;
-- batch page;
-- tally page; and
-- verification page.
-
-Each page includes a visible trust-boundary or failure-demo label.
-
-## 4. Registration relayer flow
-
-Build relayer calldata:
+## 3. Generate individual artifacts
 
 ```bash
-npm run build:registration-request -- ./demo-output/registration-request-input.json
+npm run circuit:input:ballot -- ./ballot-input.json 1
+npm run proof:ballot -- ./ballot-input.json ./ballot-proof-output
+npm run build:vote-package:v2 -- descriptor.json vote-package-v2.json
+npm run build:batch:v2 -- batch-input.json batch-artifact-v2.json
+npm run build:tally:v2 -- tally-input.json encrypted-tally-v2.json
+npm run finalize:tally:v2 -- finalize-config.json threshold-output
 ```
 
-Dry-run relayer submission:
+Regenerate the local testnet ceremony only when the circuit changes:
 
 ```bash
-npm run submit:registration-relayer -- ./demo-output/registration-request-artifact.json --dry-run
+npm run circuit:setup:ballot
 ```
 
-Live relayer submission requires a dedicated testnet key:
+The committed ceremony is appropriate for this demonstration, not a production
+multi-party setup.
 
-```bash
-RELAYER_PRIVATE_KEY=0x... RELAYER_RPC_URL=https://... npm run submit:registration-relayer -- ./demo-output/registration-request-artifact.json
-```
+## 4. Failure demonstrations
 
-Do not use a funded production key.
+The tests and scripts reject:
 
-## 5. Batching flow
+- malformed one-hot ballots or changed ciphertext bindings;
+- duplicate registration and ballot nullifiers;
+- duplicate batch nullifiers and broken accumulator continuity;
+- missing or modified content-addressed packages;
+- changed inclusion paths;
+- missing or tampered trustee shares/DLEQ proofs;
+- tally publication without a configured verifier;
+- Anon Aadhaar public signals that do not bind the requested registration; and
+- ERC-4337 operations without provider-issued Paymaster data.
 
-Build a batch manifest:
+## 5. Live Amoy extension
 
-```bash
-npm run build:batch -- ./demo-output/batch-input.json
-```
+Follow [live-amoy-checklist.md](live-amoy-checklist.md). Do not commit `.env`,
+private keys, identity proofs containing sensitive data, or provider secrets.
 
-Check data availability locally:
+## Honest presentation wording
 
-```bash
-npm run check:data -- ./demo-output/batch-input.json
-```
-
-Optional gateway check:
-
-```bash
-CHECK_IPFS_FETCH=1 IPFS_GATEWAY_URL=https://ipfs.io/ipfs/ npm run check:data -- ./demo-output/batch-input.json
-```
-
-The trusted batch path is still trusted until a real batch-validity circuit is
-implemented.
-
-## 6. Tally flow
-
-Build encrypted tally inputs:
-
-```bash
-npm run build:tally -- ./demo-output/tally-input.json
-```
-
-Build tally result/public-input hashes:
-
-```bash
-npm run build:tally-result -- ./demo-output/tally-result-input.json
-```
-
-The local tally uses threshold-style decryption shares and DLEQ-style share
-checks. It is not an on-chain tally proof.
-
-## 7. Readiness gate
-
-For final-demo readiness:
-
-```bash
-npm run check:readiness -- path/to/readiness.json
-```
-
-If you want a non-failing status report:
-
-```bash
-npm run check:readiness -- path/to/readiness.json --allow-blocked
-```
-
-The final demo should stay blocked until real proof artifacts, verifier
-addresses, a sponsored UserOperation, and frontend evidence are provided.
-
-## What cannot be claimed yet
-
-Do not claim:
-
-- real Anon Aadhaar verification;
-- real batch-validity/nullifier-state proof;
-- real tally SNARK;
-- real ERC-4337 sponsorship; or
-- production election readiness.
-
-Correct wording:
-
-```text
-Zero-cost testnet demo with one real BabyJubJub/Groth16 ballot-validity path,
-encrypted batch artifacts, relayer-ready registration, batch commitments,
-local threshold tally helpers, and a strict readiness gate for remaining
-real-vs-mock artifacts.
-```
+> Zero-cost privacy-preserving voting demo with real BabyJubJub/Groth16 ballot
+> proofs, deterministic content-addressed batching and receipts, and real
+> off-chain 5-of-9 threshold decryption. Anon Aadhaar and ERC-4337 adapters are
+> implemented; live Amoy/provider evidence is deployment-specific. The local
+> Plan B batcher remains trusted until recursive batch and tally SNARKs are
+> added.

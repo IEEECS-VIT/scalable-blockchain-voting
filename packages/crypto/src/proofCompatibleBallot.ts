@@ -17,7 +17,7 @@ export const PROOF_COMPATIBLE_BALLOT_SCHEME =
 export const SNARK_SCALAR_FIELD =
   21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 export const BABYJUB_SUBGROUP_ORDER =
-  2736030358979909402780800718157159386076813972158567259207130577147503137n;
+  2736030358979909402780800718157159386076813972158567259200215660948447373041n;
 
 const PUBLIC_INPUT_DOMAIN = keccak256(
   stringToHex("SVB_BABYJUB_BALLOT_PUBLIC_INPUTS_V1"),
@@ -83,7 +83,7 @@ function pointToBigInts(babyJub: BabyJub, point: readonly unknown[]): BabyJubPoi
   ];
 }
 
-function hashPublicKey(publicKey: BabyJubPoint): Hex {
+export function hashProofCompatibleElectionPublicKey(publicKey: BabyJubPoint): Hex {
   return keccak256(
     encodeAbiParameters(parseAbiParameters("uint256[2] publicKey"), [publicKey]),
   );
@@ -110,7 +110,7 @@ export async function createProofCompatibleElectionKeyPair(
   return {
     privateKey: scalar,
     publicKey,
-    publicKeyHash: hashPublicKey(publicKey),
+    publicKeyHash: hashProofCompatibleElectionPublicKey(publicKey),
   };
 }
 
@@ -172,7 +172,7 @@ export async function encryptProofCompatibleBallot(params: {
   return {
     ciphertext: {
       scheme: PROOF_COMPATIBLE_BALLOT_SCHEME,
-      electionPublicKeyHash: hashPublicKey(params.electionPublicKey),
+      electionPublicKeyHash: hashProofCompatibleElectionPublicKey(params.electionPublicKey),
       c1,
       c2,
     },
@@ -196,7 +196,7 @@ export async function buildProofCompatibleBallotWitness(params: {
   assert.equal(params.ciphertext.c2.length, PROOF_COMPATIBLE_CANDIDATE_COUNT);
   assert.equal(
     params.ciphertext.electionPublicKeyHash,
-    hashPublicKey(params.electionPublicKey),
+    hashProofCompatibleElectionPublicKey(params.electionPublicKey),
     "ciphertext election public key hash does not match",
   );
 
@@ -206,24 +206,14 @@ export async function buildProofCompatibleBallotWitness(params: {
   const electionId = bytes32ToSnarkField(params.electionId);
   const candidateListHash = bytes32ToSnarkField(params.candidateListHash);
   const ballotNullifier = bytes32ToSnarkField(params.ballotNullifier);
-  const publicStatement = [
+  const packageCommitment = await computeProofCompatiblePackageCommitment({
     electionId,
     candidateListHash,
     ballotNullifier,
-    ...params.electionPublicKey,
-    ...params.ciphertext.c1.flat(),
-    ...params.ciphertext.c2.flat(),
-  ];
-  assert.equal(publicStatement.length, 21);
-  const poseidon = await buildPoseidon();
-  const leafHashes = Array.from({ length: 4 }, (_, leafIndex) => {
-    const chunk = publicStatement.slice(leafIndex * 6, leafIndex * 6 + 6);
-    while (chunk.length < 6) chunk.push(0n);
-    return BigInt(poseidon.F.toObject(poseidon(chunk)).toString());
+    electionPublicKey: params.electionPublicKey,
+    c1: params.ciphertext.c1,
+    c2: params.ciphertext.c2,
   });
-  const packageCommitment = BigInt(
-    poseidon.F.toObject(poseidon(leafHashes)).toString(),
-  );
 
   return {
     electionId,
@@ -239,6 +229,34 @@ export async function buildProofCompatibleBallotWitness(params: {
     selection: params.selection.map(String),
     randomness: params.randomness.map(String),
   };
+}
+
+export async function computeProofCompatiblePackageCommitment(params: {
+  electionId: bigint;
+  candidateListHash: bigint;
+  ballotNullifier: bigint;
+  electionPublicKey: BabyJubPoint;
+  c1: readonly BabyJubPoint[];
+  c2: readonly BabyJubPoint[];
+}): Promise<bigint> {
+  assert.equal(params.c1.length, PROOF_COMPATIBLE_CANDIDATE_COUNT);
+  assert.equal(params.c2.length, PROOF_COMPATIBLE_CANDIDATE_COUNT);
+  const publicStatement = [
+    params.electionId,
+    params.candidateListHash,
+    params.ballotNullifier,
+    ...params.electionPublicKey,
+    ...params.c1.flat(),
+    ...params.c2.flat(),
+  ];
+  assert.equal(publicStatement.length, 21);
+  const poseidon = await buildPoseidon();
+  const leafHashes = Array.from({ length: 4 }, (_, leafIndex) => {
+    const chunk = publicStatement.slice(leafIndex * 6, leafIndex * 6 + 6);
+    while (chunk.length < 6) chunk.push(0n);
+    return BigInt(poseidon.F.toObject(poseidon(chunk)).toString());
+  });
+  return BigInt(poseidon.F.toObject(poseidon(leafHashes)).toString());
 }
 
 export function flattenProofCompatibleBallotPublicSignals(

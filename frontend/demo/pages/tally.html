@@ -5,28 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tally | Scalable Voting Demo</title>
     <link rel="stylesheet" href="../styles.css" />
+    <script src="../interactive.js" defer></script>
   </head>
-  <body>
+  <body class="detail-page">
     <main class="shell">
-      <a href="../index.html">← Demo home</a>
+      <a class="back-link" href="../index.html">← Back to overview</a>
       <section class="hero">
         <div class="eyebrow">Tally page</div>
         <h1>Aggregate encrypted ballots, then decrypt through trustee shares.</h1>
         <p>
-          The local pipeline aggregates accepted encrypted ballots, verifies
-          DLEQ-style decryption share proofs, and builds result/public-input
-          hashes for the future tally verifier.
+          The version-2 pipeline aggregates accepted BabyJubJub ballots,
+          verifies five DLEQ decryption-share proofs, combines a 5-of-9
+          threshold without reconstructing the key, and publishes result hashes.
         </p>
         <div class="warning">
-          Simulation boundary: local DLEQ checks are not an audited threshold
-          ceremony or an on-chain tally SNARK.
+          Honest boundary: threshold decryption is real off-chain cryptography.
+          The trustee ceremony is deterministic for this demo and the on-chain
+          tally SNARK remains pending.
         </div>
       </section>
       <section class="grid">
+        <article class="step" data-tally-viewer>
+          <h2>Generated threshold result</h2>
+          <button class="button primary" type="button" data-load-tally>Load 5-of-9 tally</button>
+          <pre class="mono" data-tally-output>Start the demo server, then load the result.</pre>
+        </article>
         <article class="step">
           <h2>Commands</h2>
           <div class="mono">npm run build:tally -- tally-input.json</div>
           <div class="mono">npm run build:tally-result -- tally-result-input.json</div>
+          <div class="mono">npm run finalize:tally:v2 -- finalize-config.json output</div>
         </article>
         <article class="step">
           <h2>Current demo output</h2>

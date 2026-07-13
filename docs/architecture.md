@@ -26,10 +26,8 @@ public-key hash, and voting window.
 
 ### `VoterRegistry`
 
-Provides a trusted registrar seam for the first demo. The registrar records an
-election-scoped identity nullifier and an ephemeral voting address. It does not
-verify Anon Aadhaar yet, and it must not be described as anonymous eligibility
-proof verification.
+Provides a trusted registrar seam for local tests. The registrar records an
+election-scoped identity nullifier and an ephemeral voting address.
 
 It also exposes a proof-based registration seam through
 `IEligibilityVerifier`. The verifier statement is:
@@ -39,8 +37,11 @@ It also exposes a proof-based registration seam through
 - the proof authorizes this election-scoped `identityNullifier`; and
 - the proof binds that nullifier to one ephemeral `votingKey`.
 
-The current repository includes only a test verifier for this seam. It is not
-an Anon Aadhaar verifier.
+The repository includes both a test verifier and
+`AnonAadhaarEligibilityVerifier`, which calls the official Anon Aadhaar
+contract interface and then enforces election, nullifier, signal, timestamp,
+and ephemeral-key bindings. A real proof and deployed official verifier remain
+external inputs.
 
 The TypeScript crypto package mirrors the registry's public-input hash so the
 future frontend or Anon Aadhaar adapter can build the exact same proof signal
@@ -101,20 +102,22 @@ Defines the off-chain vote-package and batch-manifest formats used before data
 is submitted to `BatchCommitment`. Vote packages intentionally exclude
 timestamps, device IDs, client versions, and other fingerprinting metadata.
 
-The package currently provides the original secp256k1 EC-ElGamal-style tally
-demo plus a proof-compatible BabyJubJub ballot path, deterministic public-key
-hashes, ballot-proof public-input hashing,
+The package provides the original secp256k1 compatibility demo plus a canonical
+proof-compatible BabyJubJub path covering the real ballot proof, vote package,
+aggregate-bound batch manifest, receipt, encrypted aggregation, and 5-of-9
+threshold decryption. It also provides deterministic public-key hashes,
+ballot-proof public-input hashing,
 local demo decryption, homomorphic aggregation helpers, threshold share
 generation, DLEQ-checked partial decryption shares, deterministic hashes,
 canonical vote-package JSON, Merkle roots, inclusion receipts,
 duplicate-nullifier checks, batch public-input hashing, encrypted tally input
 aggregation, tally-result hash binding, and data-availability preflight checks.
 
-Ballot validity is now proved for the four-candidate BabyJubJub path. The
-canonical batch/tally artifact pipeline still uses the older secp256k1 scheme,
-so migrating that pipeline to the proof-compatible ciphertext format is a
-real remaining integration task. Batch validity and the full tally statement
-also still need circuits and verifier contracts.
+Ballot validity is proved for the four-candidate BabyJubJub path, and version-2
+batch/tally artifacts use that same ciphertext. Five trustee shares include
+BabyJubJub DLEQ correctness proofs and are combined without reconstructing the
+private key. Recursive batch validity and on-chain tally statements still need
+circuits and verifier contracts for the stronger trustless version.
 
 ### `TallyVerifier`
 
@@ -146,24 +149,26 @@ walking through the pipeline without live services. It is useful for demos and
 script regression checks, but it intentionally uses placeholder proof bytes
 and must not be presented as proof verification.
 
-`frontend/demo/` contains a static demo UI for registration, voting, receipt,
-batch, tally, and verification pages. It is a communication and walkthrough
-layer, not a production Next.js app.
+`generate_complete_demo_v2.ts` builds the real local proof-compatible flow and
+`serve_demo.ts` exposes its status and artifacts to `frontend/demo/`. The UI
+includes deterministic biometric failure/success, package, receipt, tally, and
+public-verification walkthroughs. It is a local demonstration app, not a
+production identity or wallet client.
 
 ## Demo versus future production
 
 | Capability | Current status | Required stronger version |
 | --- | --- | --- |
-| Eligibility | Trusted demo registrar plus verifier interface seam | Audited anonymous eligibility verifier |
-| Biometrics | Not implemented | Optional regulated authentication gateway |
-| Ballot encryption | Legacy secp256k1 tally demo plus four-candidate proof-compatible BabyJubJub EC-ElGamal | Unify canonical batch/tally artifacts on the proof-compatible scheme |
+| Eligibility | Trusted registrar, official Anon Aadhaar adapter, and calldata builder | Live test proof and audited deployment |
+| Biometrics | Deterministic pass/fail kiosk simulation with metadata-free audit | Optional regulated authentication gateway |
+| Ballot encryption | Four-candidate proof-compatible BabyJubJub EC-ElGamal from ballot through threshold tally | Independent cryptographic review |
 | Ballot proof | Real Groth16 one-hot/encryption proof, generated Solidity verifier, and contract binding adapter | Independent circuit review and production multi-party setup |
 | Batching | Deterministic manifest builder, trusted root submission, plus verifier seam for proof-gated submission | Batch-validity and state-transition proof |
-| Gas sponsorship | Not implemented | Real ERC-4337 UserOperation and Paymaster |
-| Threshold tally | Local Shamir-style shares plus off-chain DLEQ share proofs | Audited threshold ceremony and verifier-compatible decryption proofs |
+| Gas sponsorship | v0.6/v0.7 validation, bundler estimation/submission/polling bridge | Provider-issued Paymaster data and live evidence |
+| Threshold tally | BabyJubJub 5-of-9 Shamir shares plus off-chain DLEQ share proofs | Distributed ceremony and verifier-compatible tally SNARK |
 | Encrypted tally aggregation | Local aggregation plus result-hash binding from accepted batch artifacts | Proof-gated aggregation over verified batches |
 | Tally verification | Verifier adapter plus test mock only | Generated and audited verifier contract |
 | Data availability | Local/IPFS-gateway preflight script | Multi-provider persistence strategy |
 | Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |
 | Final-demo readiness | Strict artifact gate for real-vs-mock status | Independent audit plus deployed end-to-end walkthrough |
-| Frontend | Static labeled demo UI | Production app wired to wallet, relayer, storage, and verifier artifacts |
+| Frontend | Functional local artifact-backed demo UI | Production app wired to wallet, relayer, storage, and live verifier artifacts |

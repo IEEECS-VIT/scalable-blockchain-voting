@@ -1,0 +1,14 @@
+{
+  "electionId": "0x801ed15242c9d74bc81418d224bea751a4ac8248cb2416ecf508ab430e316f61",
+  "previousNullifierRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "packages": [
+    {
+      "contentId": "ipfs://svb-real-proof-ballot-1",
+      "path": "vote-1-package-v2.json"
+    },
+    {
+      "contentId": "ipfs://svb-real-proof-ballot-2",
+      "path": "vote-2-package-v2.json"
+    }
+  ]
+}

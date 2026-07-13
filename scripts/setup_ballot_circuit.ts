@@ -131,6 +131,21 @@ run(process.execPath, [
   "test/fixtures/ballot-validity/input.json",
   "test/fixtures/ballot-validity",
 ]);
+run(process.execPath, [
+  "--import",
+  "tsx",
+  "scripts/build_ballot_circuit_input.ts",
+  "test/fixtures/ballot-validity-2/input.json",
+  "2",
+  "2",
+]);
+run(process.execPath, [
+  "--import",
+  "tsx",
+  "scripts/generate_ballot_proof.ts",
+  "test/fixtures/ballot-validity-2/input.json",
+  "test/fixtures/ballot-validity-2",
+]);
 
 console.log(`Ballot proving key: ${path.relative(repositoryRoot, finalZkeyPath)}`);
 console.log(`Verification key: ${path.relative(repositoryRoot, verificationKeyPath)}`);

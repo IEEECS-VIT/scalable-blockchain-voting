@@ -6,7 +6,10 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 interface IEligibilityVerifier {
     function verify(
         bytes calldata proof,
-        bytes32 publicInputsHash
+        bytes32 publicInputsHash,
+        bytes32 electionId,
+        bytes32 identityNullifier,
+        address votingKey
     ) external view returns (bool);
 }
 
@@ -69,7 +72,13 @@ contract VoterRegistry is Ownable {
             identityNullifier,
             votingKey
         );
-        if (!verifier.verify(proof, publicInputsHash)) {
+        if (!verifier.verify(
+            proof,
+            publicInputsHash,
+            electionId,
+            identityNullifier,
+            votingKey
+        )) {
             revert InvalidEligibilityProof();
         }
 

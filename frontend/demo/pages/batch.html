@@ -6,16 +6,16 @@
     <title>Batch | Scalable Voting Demo</title>
     <link rel="stylesheet" href="../styles.css" />
   </head>
-  <body>
+  <body class="detail-page">
     <main class="shell">
-      <a href="../index.html">← Demo home</a>
+      <a class="back-link" href="../index.html">← Back to overview</a>
       <section class="hero">
         <div class="eyebrow">Batch page</div>
         <h1>Commit many encrypted vote packages as one batch.</h1>
         <p>
           The batcher builds deterministic manifests, checks nullifier
-          continuity, creates inclusion receipts, and prepares the
-          submitBatchWithProof argument prefix.
+          continuity, creates inclusion receipts, commits the exact encrypted
+          aggregate, and prepares the submitBatchWithProof argument prefix.
         </p>
         <div class="warning">
           Simulation boundary: the trusted batch path is not trustless. The
@@ -27,6 +27,7 @@
         <article class="step">
           <h2>Commands</h2>
           <div class="mono">npm run build:batch -- batch-input.json</div>
+          <div class="mono">npm run build:batch:v2 -- batch-input.json batch-artifact.json</div>
           <div class="mono">npm run check:data -- batch-input.json</div>
         </article>
         <article class="step">

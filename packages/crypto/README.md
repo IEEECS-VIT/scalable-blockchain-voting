@@ -8,6 +8,8 @@ Implemented now:
 - secp256k1 EC-ElGamal-style encrypted vote vectors;
 - proof-compatible BabyJubJub EC-ElGamal ballot encryption, circuit witness
   construction, Poseidon package commitments, and public-signal hashing;
+- canonical version-2 real-proof packages, aggregate-bound batch manifests,
+  inclusion receipts, encrypted tally aggregation, and local tally decryption;
 - deterministic public-key hashing;
 - ballot-proof public-input hashing bound to election ID, candidate list,
   nullifier, and ciphertext;
@@ -31,6 +33,7 @@ Implemented now:
 
 Not implemented yet:
 
+- BabyJubJub threshold decryption shares and share proofs;
 - real batch-validity/nullifier-state circuit;
 - an on-chain tally/decryption verifier; or
 - IPFS download and persistence monitoring.

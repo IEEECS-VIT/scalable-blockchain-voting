@@ -1,0 +1,7 @@
+{
+  "electionId": "0x801ed15242c9d74bc81418d224bea751a4ac8248cb2416ecf508ab430e316f61",
+  "candidateListHash": "0x60b07ae66e12e8edd0a23c5079d865ee248097c2694daae1d6497a9647ca5312",
+  "ballotNullifier": "0x00af5a4566a90750ea74e9584c49712c0a87767df064d3bc662e5a6bbbd076ea",
+  "circuitInputPath": "/Users/shaurya/Desktop/scalable-blockchain-voting/test/fixtures/ballot-validity-2/input.json",
+  "proofArtifactPath": "/Users/shaurya/Desktop/scalable-blockchain-voting/test/fixtures/ballot-validity-2/ballot-proof-artifact.json"
+}

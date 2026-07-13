@@ -17,7 +17,10 @@ contract MockEligibilityVerifier is IEligibilityVerifier {
 
     function verify(
         bytes calldata proof,
-        bytes32 publicInputsHash
+        bytes32 publicInputsHash,
+        bytes32,
+        bytes32,
+        address
     ) external view returns (bool) {
         return proof.length > 0 && isAccepted[publicInputsHash];
     }

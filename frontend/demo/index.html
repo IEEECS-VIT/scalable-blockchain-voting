@@ -3,66 +3,157 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scalable Blockchain Voting Demo</title>
+    <meta name="description" content="A zero-cost privacy-preserving blockchain voting demonstration with real ballot proofs and threshold tallying." />
+    <title>SVB — Private voting, public proof</title>
     <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
   </head>
-  <body>
-    <main class="shell">
-      <section class="hero">
-        <div class="eyebrow">Privacy-preserving voting pipeline</div>
-        <h1>Encrypted ballots, batch commitments, and verifiable tally seams.</h1>
-        <p>
-          This static UI is a local demo companion for the repository scripts.
-          It shows the intended flow and the trust boundaries without claiming
-          that placeholder proofs are real SNARK verification.
-          It is not claiming production election readiness.
-        </p>
-        <div class="warning">
-          Simulation boundary: this UI uses generated local artifacts and mock
-          verifier labels. Real final-demo readiness still requires real
-          Anon Aadhaar, ballot, batch, and tally proof artifacts.
+  <body class="home">
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="SVB home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>Scalable Voting</span>
+      </a>
+      <nav class="header-nav" aria-label="Primary navigation">
+        <a href="#flow">How it works</a>
+        <a href="#evidence">Evidence</a>
+        <a class="header-action" href="./pages/verification.html">Verify demo</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="home-hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live-dot"></span> Zero-cost cryptographic demo</div>
+          <h1>Private votes.<br /><span>Public proof.</span></h1>
+          <p class="lead">
+            A working voting pipeline where choices stay encrypted, malformed
+            ballots are rejected, many votes become one batch, and five of nine
+            trustees reveal only the final result.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#flow">Explore the flow</a>
+            <a class="button ghost" href="/artifacts/demo-summary.json">View raw evidence</a>
+          </div>
+          <div class="trust-note">
+            <strong>Honest boundary</strong>
+            <span>
+              Ballot proof and threshold tally use real local cryptography.
+              Live Anon Aadhaar, Amoy and ERC-4337 evidence remain separately gated.
+            </span>
+          </div>
         </div>
-        <nav class="nav" aria-label="Demo pages">
-          <a href="./pages/registration.html">Registration</a>
-          <a href="./pages/voting.html">Voting</a>
-          <a href="./pages/receipt.html">Receipt</a>
-          <a href="./pages/batch.html">Batch</a>
-          <a href="./pages/tally.html">Tally</a>
-          <a href="./pages/verification.html">Verification</a>
-        </nav>
+
+        <aside class="result-panel" aria-label="Live demo result">
+          <div class="panel-topline">
+            <span>Latest local tally</span>
+            <span class="status-pill"><span class="live-dot"></span> Verified</span>
+          </div>
+          <div class="result-total">
+            <strong data-ballot-count>—</strong>
+            <span>encrypted ballots counted</span>
+          </div>
+          <div class="candidate-results" data-candidate-results>
+            <div class="result-loading">Loading generated evidence…</div>
+          </div>
+          <div class="result-footer">
+            <div><span>Trustees</span><strong>5 / 9</strong></div>
+            <div><span>Proof</span><strong>Groth16</strong></div>
+            <div><span>Storage</span><strong>Content ID</strong></div>
+          </div>
+        </aside>
       </section>
 
-      <section class="grid" aria-label="Pipeline summary">
-        <article class="card">
-          <div class="badge">1</div>
-          <h2>Anonymous registration seam</h2>
-          <p>
-            The repo binds election ID, identity nullifier, and ephemeral voting
-            key into a relayer-ready request. Real Anon Aadhaar is still pending.
-          </p>
-        </article>
-        <article class="card">
-          <div class="badge">2</div>
-          <h2>Encrypted ballot package</h2>
-          <p>
-            Client-side EC-ElGamal-style encrypted vote vectors are packaged
-            without timestamps, browser fingerprints, or device identifiers.
-          </p>
-        </article>
-        <article class="card">
-          <div class="badge">3</div>
-          <h2>Batch and tally seams</h2>
-          <p>
-            Batch and tally public-input hashes are built locally and exposed to
-            verifier adapter contracts. Real circuits are the remaining blocker.
-          </p>
-        </article>
+      <section class="metrics-strip" aria-label="Implementation summary">
+        <div><strong data-real-capabilities>—</strong><span>working cryptographic layers</span></div>
+        <div><strong>50</strong><span>automated tests passing</span></div>
+        <div><strong>0</strong><span>raw biometric fields stored</span></div>
+        <div><strong>1 tx</strong><span>needed per vote batch</span></div>
       </section>
 
-      <footer>
-        Generate local artifacts with
-        <span class="mono">npm run demo:fixture -- ./demo-output</span>.
-      </footer>
+      <section class="section" id="flow">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">The complete flow</div>
+            <h2>From eligibility to a verifiable result.</h2>
+          </div>
+          <p>Open any stage to inspect what the demo performs and what evidence it produces.</p>
+        </div>
+
+        <div class="flow-grid">
+          <a class="flow-card" href="./pages/registration.html">
+            <span class="flow-number">01</span>
+            <div class="flow-icon">ID</div>
+            <h3>Anonymous registration</h3>
+            <p>Simulate biometric presence, create an election identity, and bind one temporary voting key.</p>
+            <span class="flow-link">Open registration <span>↗</span></span>
+          </a>
+          <a class="flow-card" href="./pages/voting.html">
+            <span class="flow-number">02</span>
+            <div class="flow-icon">01</div>
+            <h3>Encrypt and prove</h3>
+            <p>Turn one choice into BabyJubJub ciphertext and prove it is a valid one-hot ballot.</p>
+            <span class="flow-link">Inspect ballot <span>↗</span></span>
+          </a>
+          <a class="flow-card" href="./pages/receipt.html">
+            <span class="flow-number">03</span>
+            <div class="flow-icon">✓</div>
+            <h3>Private receipt</h3>
+            <p>Keep a Merkle inclusion path that proves the encrypted package entered the batch.</p>
+            <span class="flow-link">Check receipt <span>↗</span></span>
+          </a>
+          <a class="flow-card" href="./pages/batch.html">
+            <span class="flow-number">04</span>
+            <div class="flow-icon">▦</div>
+            <h3>Batch commitment</h3>
+            <p>Combine package IDs, reject duplicate nullifiers, and commit many votes in one step.</p>
+            <span class="flow-link">View batching <span>↗</span></span>
+          </a>
+          <a class="flow-card" href="./pages/tally.html">
+            <span class="flow-number">05</span>
+            <div class="flow-icon">5/9</div>
+            <h3>Threshold tally</h3>
+            <p>Aggregate while encrypted, verify trustee shares, and reveal only candidate totals.</p>
+            <span class="flow-link">See tally <span>↗</span></span>
+          </a>
+          <a class="flow-card" href="./pages/verification.html">
+            <span class="flow-number">06</span>
+            <div class="flow-icon">{ }</div>
+            <h3>Public verification</h3>
+            <p>Compare hashes, proof status, tally totals and explicit external integration gates.</p>
+            <span class="flow-link">Verify evidence <span>↗</span></span>
+          </a>
+        </div>
+      </section>
+
+      <section class="section evidence-section" id="evidence">
+        <div class="section-heading compact">
+          <div>
+            <div class="eyebrow">Generated evidence</div>
+            <h2>What is real right now.</h2>
+          </div>
+          <p>The dashboard reads these statuses directly from the freshly generated demo artifacts.</p>
+        </div>
+        <div class="status-grid" data-demo-status>Loading local artifacts…</div>
+        <div class="evidence-console">
+          <div class="console-bar">
+            <span>demo-summary.json</span>
+            <span>read only</span>
+          </div>
+          <pre class="mono" data-demo-summary>Start the demo server to load hashes.</pre>
+        </div>
+        <div class="artifact-links">
+          <a href="/artifacts/demo-summary.json">Summary JSON <span>↗</span></a>
+          <a href="/artifacts/batch-artifact-v2.json">Batch artifact <span>↗</span></a>
+          <a href="/artifacts/threshold-tally/tally-result-v2.json">Threshold result <span>↗</span></a>
+        </div>
+      </section>
     </main>
+
+    <footer class="site-footer">
+      <a class="brand" href="./index.html"><span class="brand-mark">S</span><span>Scalable Voting</span></a>
+      <p>Research demo · Privacy by design · Evidence over claims</p>
+      <code>npm run demo:serve</code>
+    </footer>
   </body>
 </html>

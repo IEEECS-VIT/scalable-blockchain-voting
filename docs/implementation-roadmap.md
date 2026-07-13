@@ -13,7 +13,8 @@
 
 - [x] Define the exact anonymous eligibility statement
 - [x] Add an eligibility-verifier interface seam
-- [ ] Integrate Anon Aadhaar test mode behind the verifier interface
+- [x] Integrate the official Anon Aadhaar verifier interface behind an adapter
+- [x] Build an Anon Aadhaar proof-to-registration calldata bridge
 - [x] Bind the election ID and ephemeral voting key into the proof signal
 - [x] Build the relayer-safe registration request/calldata package
 - [x] Add a dedicated relayer submission script with dry-run safety
@@ -28,8 +29,10 @@
 - [x] Build a real ballot-validity circuit
 - [x] Bind election ID, candidate-list hash, ciphertext, and nullifier
 - [x] Add malformed-ballot and duplicate-nullifier tests
-- [ ] Migrate the canonical vote-package, batch, and tally pipeline from the
-  legacy secp256k1 demo path to the proof-compatible BabyJubJub ciphertext
+- [x] Migrate canonical vote packages, aggregate-bound batch manifests, and
+  encrypted tally aggregation to the proof-compatible BabyJubJub ciphertext
+- [x] Migrate threshold decryption shares from the legacy secp256k1 path to
+  BabyJubJub
 
 ## Milestone 4 - Storage and batching
 
@@ -57,17 +60,30 @@
 
 - [x] Build static demo pages for registration, voting, receipt, batch, tally,
   and verification
-- [ ] Replace static demo pages with a production frontend app
-- [ ] Implement a real sponsored ERC-4337 UserOperation on Amoy
+- [x] Add an artifact-backed local dashboard and interactive biometric,
+  ballot, receipt, tally, and public-verification walkthroughs
+- [x] Implement ERC-4337 v0.6/v0.7 validation, bundler estimation, submission,
+  receipt polling, and evidence output
+- [ ] Execute a provider-sponsored ERC-4337 UserOperation on Amoy
 - [x] Add clearly labeled failure demonstrations and trust-boundary UI labels
 - [ ] Add live explorer links after Amoy deployment
 - [x] Add a final-demo readiness gate for real-vs-mock artifacts
 - [x] Add a deterministic local demo fixture generator
 - [x] Add local demo runbook and research-alignment review
-- [ ] Add complete live deployment documentation with real addresses
+- [x] Add complete live deployment documentation and parameter templates
+- [ ] Record live addresses and explorer links after external deployment
 
 ## Definition of a credible final demo
 
-At minimum, the final presentation should contain one real ballot proof, one
-real on-chain tally-proof verification, and one real sponsored UserOperation.
-Any remaining simulations must be visibly labeled.
+The repository-local Plan B demo is complete when it shows a real ballot proof,
+proof-bound encrypted packages, deterministic batching and receipts, duplicate
+rejection, and a real 5-of-9 local threshold result. Live-testnet completion is
+separately gated on an actual Anon Aadhaar test proof, deployed Amoy addresses,
+IPFS persistence, and a provider-sponsored UserOperation. Any permitted Plan B
+simulation must remain visibly labeled.
+
+## Post-demo trust-minimization work
+
+- [ ] Implement recursive batch-validity/nullifier-state proof aggregation
+- [ ] Implement an on-chain-verifiable threshold tally SNARK
+- [ ] Complete independent circuit, contract, and ceremony audits

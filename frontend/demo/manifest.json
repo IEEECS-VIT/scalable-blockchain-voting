@@ -1,6 +1,6 @@
 {
-  "status": "local-demo-ui",
-  "warning": "Static demo UI only. Proof bytes and verifier acceptances remain placeholders until real circuits and deployed verifier contracts are provided.",
+  "status": "functional-local-cryptographic-demo",
+  "warning": "Ballot proof and threshold tally are real local cryptography. Batch/tally SNARKs and external testnet integrations remain separately gated.",
   "pages": [
     {
       "id": "registration",

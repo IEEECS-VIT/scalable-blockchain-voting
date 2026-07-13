@@ -27,6 +27,7 @@ contract MockBallotProofVerifier is IBallotProofVerifier {
         bytes32 publicInputsHash,
         bytes32,
         bytes32,
+        bytes32,
         bytes32
     ) external view returns (bool) {
         return acceptedHashes[publicInputsHash];

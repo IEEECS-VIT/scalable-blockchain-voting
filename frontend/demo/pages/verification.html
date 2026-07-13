@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Verification | Scalable Voting Demo</title>
     <link rel="stylesheet" href="../styles.css" />
+    <script src="../interactive.js" defer></script>
   </head>
-  <body>
+  <body class="detail-page">
     <main class="shell">
-      <a href="../index.html">← Demo home</a>
+      <a class="back-link" href="../index.html">← Back to overview</a>
       <section class="hero">
         <div class="eyebrow">Verification page</div>
         <h1>Show exactly what is verified, mocked, and still blocked.</h1>
@@ -23,6 +24,11 @@
         </div>
       </section>
       <section class="grid">
+        <article class="step" data-public-verifier>
+          <h2>Public artifact verification</h2>
+          <button class="button primary" type="button" data-run-verification>Check generated evidence</button>
+          <pre class="mono" data-verification-output>Start the demo server, then run verification.</pre>
+        </article>
         <article class="step">
           <h2>Readiness command</h2>
           <div class="mono">npm run check:readiness -- readiness.json</div>
@@ -31,8 +37,9 @@
         <article class="step">
           <h2>Remaining blockers</h2>
           <ul class="status-list">
-            <li><span class="pending">!</span><span>real Anon Aadhaar verifier</span></li>
-            <li><span class="pending">!</span><span>real ballot, batch, and tally circuits</span></li>
+            <li><span class="pending">!</span><span>live Anon Aadhaar test proof</span></li>
+            <li><span class="ok">✓</span><span>real ballot circuit and on-chain verifier</span></li>
+            <li><span class="pending">!</span><span>real batch and tally circuits</span></li>
             <li><span class="pending">!</span><span>real ERC-4337 sponsored UserOperation</span></li>
           </ul>
         </article>

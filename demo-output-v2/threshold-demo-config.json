@@ -1,0 +1,14 @@
+{
+  "encryptedTallyPath": "encrypted-tally-v2.json",
+  "threshold": 5,
+  "trusteeCount": 9,
+  "privateKey": "7",
+  "coefficients": [
+    "11",
+    "13",
+    "17",
+    "19"
+  ],
+  "maxVotes": 2,
+  "warning": "Deterministic local institution simulation; never use these values in production."
+}

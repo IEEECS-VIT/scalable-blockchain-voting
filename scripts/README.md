@@ -19,6 +19,29 @@ npm run proof:ballot -- ./ballot-input.json ./ballot-proof-output
 Candidate indices are `0` through `3`. The local ceremony is appropriate for
 the zero-cost testnet demo, not a production election.
 
+The version-2 commands continue from the real proof artifact into the
+canonical BabyJubJub data pipeline:
+
+```bash
+npm run build:vote-package:v2 -- descriptor.json vote-package-v2.json
+npm run build:batch:v2 -- batch-input.json batch-artifact-v2.json
+npm run build:tally:v2 -- tally-input.json encrypted-tally-v2.json
+```
+
+The package descriptor binds the original `electionId`, `candidateListHash`,
+canonical field-encoded `ballotNullifier`, circuit input, and proof artifact.
+The batch artifact commits its exact encrypted aggregate. The tally command
+rebuilds every accepted batch before aggregation. Finalization creates and
+verifies five of nine BabyJubJub trustee shares with DLEQ proofs and combines
+them without reconstructing the election private key:
+
+```bash
+npm run finalize:tally:v2 -- finalize-config.json threshold-output
+```
+
+The deterministic coefficients in the complete local demo simulate nine test
+institutions; they are not a production distributed key ceremony.
+
 `upload_vote_package.ts` validates a vote-package JSON file, rewrites it into
 canonical JSON, and uploads that exact content through an IPFS HTTP API. It
 prints the resulting `ipfs://...` content ID and the package digest.
@@ -112,6 +135,26 @@ verification.
 npm run demo:fixture -- ./demo-output
 ```
 
+For the real-proof local path, generate and serve the complete version-2 demo:
+
+```bash
+npm run demo:complete -- ./demo-output-v2
+npm run demo:serve
+```
+
+`build_anon_aadhaar_registration.ts` checks the official Anon Aadhaar public
+signals and emits adapter-bound `registerWithProof` calldata. It requires a
+real proof descriptor; it never fabricates identity evidence.
+
+`submit_sponsored_user_operation.ts` validates v0.6 or v0.7 Paymaster fields,
+checks the bundler EntryPoint, estimates gas in dry-run mode, and sends/polls
+only with `--send`:
+
+```bash
+npm run submit:userop -- sponsored-userop.json evidence.json
+npm run submit:userop -- sponsored-userop.json evidence.json --send
+```
+
 `build_tally_input.ts` validates accepted batch artifacts against their package
 files, aggregates only those encrypted ballots, and outputs the encrypted tally
 public inputs for the future tally proof.
@@ -129,6 +172,5 @@ and outputs the `resultHash` and `publicInputsHash` that should be passed to
 npm run build:tally-result -- path/to/tally-result-input.json
 ```
 
-Batch construction and tally scripts should only be added after their schemas
-and proof statements are fixed. Empty or fake scripts would make the demo look
-more complete than it is.
+The batch/tally public-input hashes are audit bindings, not SNARKs. The local
+batcher trust boundary and pending tally circuit stay explicit in every output.

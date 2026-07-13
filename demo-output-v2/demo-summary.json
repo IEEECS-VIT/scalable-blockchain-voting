@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-07-13T06:51:53.967Z",
+  "mode": "zero-cost-local-cryptographic-demo",
+  "electionId": "0x801ed15242c9d74bc81418d224bea751a4ac8248cb2416ecf508ab430e316f61",
+  "candidateListHash": "0x60b07ae66e12e8edd0a23c5079d865ee248097c2694daae1d6497a9647ca5312",
+  "ballotCount": 2,
+  "tallyCounts": [
+    0,
+    1,
+    1,
+    0
+  ],
+  "manifestDigest": "0x135254347e8a7a7f04610588ae9ee5d7d2d0fa59a65dd7af25a9b9b20e4e19fa",
+  "aggregateCiphertextDigest": "0x03409e2f970263a621a7dbfb9620cc51dbdd637bdf4918f490df97d7f46222d4",
+  "batchPublicInputsHash": "0x02840502e9f29b6fddccd6b0a0b9670f82c1ebe0f81cfefee9a6d472e2cbf06a",
+  "resultHash": "0xb297eeb7dd7f4d40e355373c22eee32985b258a9f15ecc654e7b331f7247ccd1",
+  "tallyProofPublicInputsHash": "0x6b2c2fffcd6f539a8ca44f111da9a6db267613ae8ac810adf147d710327b10d1",
+  "capabilities": [
+    {
+      "id": "ballotProof",
+      "label": "Real Groth16 ballot proofs",
+      "status": "real"
+    },
+    {
+      "id": "packages",
+      "label": "Proof-bound canonical vote packages",
+      "status": "real"
+    },
+    {
+      "id": "batchArtifacts",
+      "label": "Aggregate-bound batch and receipts",
+      "status": "real-offchain"
+    },
+    {
+      "id": "threshold",
+      "label": "5-of-9 threshold tally with DLEQ shares",
+      "status": "real-offchain"
+    },
+    {
+      "id": "batchProof",
+      "label": "On-chain batch-validity proof",
+      "status": "pending"
+    },
+    {
+      "id": "tallyProof",
+      "label": "On-chain tally SNARK",
+      "status": "pending"
+    },
+    {
+      "id": "anonAadhaar",
+      "label": "Anon Aadhaar test-mode proof",
+      "status": "external-pending"
+    },
+    {
+      "id": "erc4337",
+      "label": "Sponsored Amoy UserOperation",
+      "status": "external-pending"
+    }
+  ],
+  "trustBoundary": "Ballot proof is on-chain verifiable. Batch and threshold artifacts are cryptographically checked off-chain; batch/tally SNARKs and live external services remain gated."
+}

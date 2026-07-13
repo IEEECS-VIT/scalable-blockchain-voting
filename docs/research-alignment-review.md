@@ -1,75 +1,77 @@
 # Research alignment review
 
-This document checks the current implementation against the revised research
-plan and the core problems the demo is supposed to address.
+This review compares the implementation with Revised Plan B v2.0 and keeps
+repository-local completion separate from live external evidence.
 
-## Summary
+## Verdict
 
-The project is aligned with the optimized plan as a credible testnet demo
-scaffold with one complete real proof path. It is not yet a complete
-cryptographic voting system because the real Anon Aadhaar integration, batch
-circuit, tally circuit, and ERC-4337 sponsored transaction are still pending.
+The zero-cost local demonstration is complete and exceeds the Plan B MVP in
+its ballot and threshold cryptography. The same repository can be taken to
+Amoy using the included deployment and submission bridges, but a live Anon
+Aadhaar proof, faucet-funded deployer, IPFS provider, Paymaster-issued
+UserOperation, transaction hashes, and explorer links cannot be committed in
+advance or simulated as real evidence.
 
-## Problem-by-problem status
+Plan B explicitly permits a mocked eligibility proof, trusted local batcher,
+test trustees, Paymaster simulation, a simplified nullifier design, and a
+verifier-hash tally phase. This implementation goes further with a real
+BabyJubJub/Groth16 ballot proof, an official Anon Aadhaar contract adapter, and
+real 5-of-9 DLEQ-verified threshold decryption.
 
-| Problem | Current answer | Status |
+## Acceptance checklist
+
+| Plan B condition | Evidence in this repository | Status |
 | --- | --- | --- |
-| Voter privacy | Election-scoped identity nullifier, ephemeral voting key, metadata-minimal vote package, relayer-ready registration | Partially solved |
-| Ballot secrecy | EC-ElGamal-style encrypted vote vectors and aggregate ciphertexts | Demo-level solved |
-| Double voting | Identity registration mapping, ballot nullifier tracking, batch nullifier accumulator | Strong scaffold, real batch proof pending |
-| Scalability | Batch manifests, Merkle roots, inclusion receipts, proof-gated batch commitment seam | Scaffold solved, real batch circuit pending |
-| Verifiability | Real ballot Groth16 proof, public-input bindings, verifier seams, readiness gate, receipt proofs | Ballot path solved; batch/tally proofs pending |
-| Low-cost demo | Local fixture, Amoy config, relayer scripts, no paid infrastructure required by default | Mostly solved |
-| Honest presentation | Docs, UI labels, readiness gate, mock-proof blockers | Solved |
+| Biometric-gated registration | Interactive deterministic pass/fail screen; audit retains no biometric fields | Complete simulation |
+| Privacy | Election-scoped identity, relayer boundary, metadata-minimal packages, encrypted choices | Complete for demo |
+| Election identity | Election ID is part of registration and ballot bindings | Complete |
+| Encryption | BabyJubJub EC-ElGamal ciphertexts | Complete |
+| Ballot validity | Real one-hot/encryption Groth16 circuit and generated Solidity verifier | Complete |
+| Double voting | Registration and ballot nullifier rejection plus batch duplicate checks | Complete |
+| Batching | Deterministic manifests, CID/package Merkle root, nullifier continuity, aggregate commitment | Complete trusted Plan B batcher |
+| Inclusion | Generated and tested Merkle receipts | Complete |
+| Tally | Homomorphic aggregation and 5-of-9 DLEQ-verified decryption | Complete local Plan B tally |
+| Public verification | Artifact dashboard, verifier scripts, hashes, and strict readiness gate | Complete locally |
+| Zero cost | Local generation plus free-testnet configuration | Complete locally; live services require user accounts/faucet |
 
-## What is innovative or unique
+## Novel and defensible aspects
 
-- The demo separates voter identity from on-chain registration through a
-  relayer-ready request artifact.
-- Vote packages intentionally avoid fingerprinting metadata such as timestamps,
-  device IDs, browser versions, and client versions.
-- The batching layer is deterministic and auditable: package digests,
-  content-ID leaves, Merkle roots, nullifier roots, and public-input hashes are
-  all reproducible.
-- The project avoids a common demo mistake: it does not treat hash bindings or
-  mock verifiers as real SNARKs.
-- The readiness gate makes overclaiming difficult by blocking mock artifacts,
-  missing proof files, zero verifier addresses, absent frontend pages, and
-  missing sponsored UserOperation evidence.
-- The local fixture lets reviewers reproduce the whole flow without requiring
-  paid infrastructure.
-- The ballot circuit proves the complete BabyJubJub EC-ElGamal equations and
-  one-hot selection while binding the proof to the contract election,
-  nullifier, and Poseidon package commitment.
+- The real ballot proof binds election ID, candidate-list hash, canonical
+  nullifier, election public key, every ciphertext point, and the exact package
+  commitment. Changing any of these invalidates acceptance.
+- The proof-compatible version-2 package remains on BabyJubJub through
+  deterministic batching, encrypted aggregation, and threshold decryption;
+  there is no curve-switch shortcut in the canonical path.
+- Five DLEQ-proved trustee contributions can decrypt a 5-of-9 tally without
+  reconstructing the private key in the combiner.
+- Stored vote packages deliberately omit timestamps, browser versions, device
+  identifiers, and client metadata, reducing avoidable voter fingerprinting.
+- The aggregate ciphertext is committed into the batch artifact, making a
+  tally substitution detectable even before a future recursive batch proof.
+- The project treats trust-boundary honesty as a feature: mocks, hash bindings,
+  external credentials, and real SNARKs have different machine-readable
+  statuses and readiness gates.
 
-## Where it still falls short
+These are meaningful system-design contributions for a student testnet demo.
+They are not, by themselves, a legal patent-novelty opinion or proof of academic
+novelty. A competition panel, supervisor, paper reviewers, or patent examiner
+ultimately judges novelty against prior art.
 
-The remaining blockers are real, not cosmetic:
+## Remaining external evidence
 
-1. Anon Aadhaar test-mode integration is not wired.
-2. The batch-validity/nullifier-state transition circuit is not implemented.
-3. The tally proof circuit is not implemented.
-4. The real ballot verifier is connected locally but has no live Amoy
-   deployment evidence yet.
-5. No live Amoy relayer transaction evidence is included.
-6. No real ERC-4337 sponsored UserOperation evidence is included.
-7. The static frontend is a demo UI, not a production app.
+1. Generate an Anon Aadhaar test-mode proof and submit adapter-bound
+   registration calldata through a relayer.
+2. Deploy the contracts on Polygon Amoy and record addresses/transactions.
+3. Upload package/manifest content to a real IPFS provider or local node.
+4. Obtain Paymaster sponsorship data from a provider and send one ERC-4337
+   UserOperation through the included bundler bridge.
+5. Add the resulting explorer and content links to the dashboard evidence.
 
-## Honest final assessment
+## Stronger post-demo research work
 
-The repository now solves the architecture, artifact, and trust-boundary parts
-of the revised plan well. It is structured, testable, and unusually honest for
-a demo project because every mock seam is labeled and gated.
-
-It now has one real end-to-end proof path: circuit, proof generation, generated
-Solidity verifier, adapter binding checks, and `VotingContract` acceptance.
-The next truly important step is batch validity, followed by tally proof.
-
-## Recommended next implementation order
-
-1. Batch-validity/nullifier-state circuit.
-2. Tally proof circuit.
-3. Anon Aadhaar test-mode verifier adapter.
-5. Live Amoy deployment with verifier addresses.
-6. Real ERC-4337 sponsored registration or ballot action.
-7. Replace the static frontend demo with a production web app.
+The trusted Plan B batcher can be removed only with recursive verification (or
+an equivalent aggregation proof) that validates all private ballot proofs and
+the nullifier-state transition. Likewise, the current real threshold tally is
+verified off-chain; an audited tally circuit and generated verifier are needed
+for trustless on-chain tally verification. These are production/research
+extensions, not hidden claims of the current demo.

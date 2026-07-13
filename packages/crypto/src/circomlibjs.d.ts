@@ -1,6 +1,8 @@
 declare module "circomlibjs" {
   type Field = {
     e(value: unknown): unknown;
+    eq(left: unknown, right: unknown): boolean;
+    neg(value: unknown): unknown;
     toObject(value: unknown): { toString(): string };
   };
 

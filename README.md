@@ -18,17 +18,29 @@ This repository includes:
 - a real four-candidate BabyJubJub/Groth16 ballot-validity circuit, generated
   Solidity verifier, and proof-gated direct ballot submission;
 - encrypted ballot package utilities;
+- version-2 proof-compatible vote-package, aggregate-bound batch, receipt, and
+  encrypted tally CLI flows;
 - IPFS upload, batch manifest, and data-availability scripts;
 - append-only batch commitments with nullifier-root continuity;
 - a proof-verifier seam for future batch-validity submission;
-- encrypted tally aggregation and local threshold-share tally helpers;
+- encrypted tally aggregation and real BabyJubJub 5-of-9 Shamir trustee
+  shares with DLEQ correctness proofs;
 - tally result/public-input hash binding; and
 - a tally-verifier adapter that requires a real verifier contract before a
   result can be marked verified.
 
-The Anon Aadhaar integration, real batch/tally circuits, ERC-4337 sponsorship,
-and production frontend are not implemented yet. The biometric flow remains a
-clearly labeled demo simulation.
+The repository also includes an adapter for the official Anon Aadhaar verifier
+interface, an Anon Aadhaar registration-artifact builder, an ERC-4337 bundler
+submission bridge, a deterministic biometric pass/fail simulation, and a
+functional artifact-backed local dashboard. Live Anon Aadhaar proof material,
+provider-issued Paymaster data, and Amoy transaction evidence remain external
+deployment inputs; they are never replaced with fake evidence.
+
+The version-2 canonical path uses BabyJubJub from the real ballot proof through
+encrypted aggregation and threshold decryption. Real batch-recursion and tally
+SNARK circuits remain stronger post-demo work. The revised Plan B explicitly
+allows a trusted local batcher and verifier-hash tally phase, so these are not
+misrepresented as completed trustless proofs.
 
 ## Important security boundary
 
@@ -59,6 +71,25 @@ artifacts:
 npm run circuit:input:ballot -- ./ballot-input.json 1
 npm run proof:ballot -- ./ballot-input.json ./ballot-proof-output
 ```
+
+Build the proof-compatible package, batch, and tally artifacts:
+
+```bash
+npm run build:vote-package:v2 -- descriptor.json vote-package-v2.json
+npm run build:batch:v2 -- batch-input.json batch-artifact-v2.json
+npm run build:tally:v2 -- tally-input.json encrypted-tally-v2.json
+npm run finalize:tally:v2 -- finalize-config.json threshold-output
+```
+
+Run the complete local cryptographic demo and dashboard:
+
+```bash
+npm run demo:serve
+```
+
+Then open `http://127.0.0.1:8080`. This regenerates real ballot-proof packages,
+the aggregate-bound batch, receipts, and the 5-of-9 threshold result before
+serving the UI.
 
 To regenerate the proving key, verifier, and matching test fixture, run
 `npm run circuit:setup:ballot`. This performs a fresh local testnet ceremony;
@@ -102,11 +133,8 @@ npm run demo:fixture -- ./demo-output
 
 This fixture is useful for script demos, but its proof bytes are placeholders.
 
-Static demo UI:
-
-```text
-frontend/demo/index.html
-```
+For the steps that require external Amoy, Anon Aadhaar, IPFS, or bundler
+credentials, follow [docs/live-amoy-checklist.md](docs/live-amoy-checklist.md).
 
 Runbook and alignment review:
 
@@ -121,7 +149,7 @@ ignition/    Repeatable deployment modules
 test/        Contract tests
 circuits/    Real ballot circuit and planned batch/tally circuits
 packages/    Shared cryptography, proof-input, and Merkle utilities
-frontend/    Static demo UI and future production frontend
+frontend/    Functional local demo UI and future production frontend
 docs/        Architecture, scope, and implementation roadmap
 ```
 

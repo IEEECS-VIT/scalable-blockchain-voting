@@ -5,6 +5,7 @@ import { keccak256, stringToHex } from "viem";
 
 import {
   buildProofCompatibleBallotWitness,
+  bytes32ToSnarkField,
   createProofCompatibleElectionKeyPair,
   encryptProofCompatibleBallot,
   flattenProofCompatibleBallotPublicSignals,
@@ -15,6 +16,7 @@ const outputPath = path.resolve(
   process.argv[2] ?? "circuits/build/ballot_validity/input.json",
 );
 const selectedIndex = Number(process.argv[3] ?? "1");
+const ballotLabel = process.argv[4] ?? "1";
 
 const electionKey = await createProofCompatibleElectionKeyPair(7n);
 const encrypted = await encryptProofCompatibleBallot({
@@ -22,12 +24,17 @@ const encrypted = await encryptProofCompatibleBallot({
   selectedIndex,
   randomness: [17n, 18n, 19n, 20n],
 });
+const ballotNullifierField = bytes32ToSnarkField(
+  keccak256(stringToHex(`demo-ballot-nullifier-${ballotLabel}`)),
+);
+const ballotNullifier =
+  `0x${ballotNullifierField.toString(16).padStart(64, "0")}` as const;
 const witness = await buildProofCompatibleBallotWitness({
   electionId: keccak256(stringToHex("scalable-voting-demo-2026")),
   candidateListHash: keccak256(
     stringToHex("candidate-a,candidate-b,candidate-c,candidate-d"),
   ),
-  ballotNullifier: keccak256(stringToHex("demo-ballot-nullifier-1")),
+  ballotNullifier,
   electionPublicKey: electionKey.publicKey,
   ciphertext: encrypted.ciphertext,
   selection: encrypted.selection,
@@ -47,6 +54,7 @@ console.log(
     {
       inputPath: path.relative(process.cwd(), outputPath),
       selectedIndex,
+      ballotLabel,
       electionPublicKeyHash: electionKey.publicKeyHash,
       packageCommitment: `0x${witness.packageCommitment.toString(16).padStart(64, "0")}`,
       publicInputsHash: hashProofCompatibleBallotPublicSignals(publicSignals),

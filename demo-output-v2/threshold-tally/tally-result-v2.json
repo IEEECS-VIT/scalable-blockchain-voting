@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "scheme": "threshold-babyjubjub-elgamal-5-of-9-v1",
+  "electionId": "0x801ed15242c9d74bc81418d224bea751a4ac8248cb2416ecf508ab430e316f61",
+  "candidateListHash": "0x60b07ae66e12e8edd0a23c5079d865ee248097c2694daae1d6497a9647ca5312",
+  "ballotCount": 2,
+  "threshold": 5,
+  "trusteeCount": 9,
+  "aggregateCiphertextDigest": "0x03409e2f970263a621a7dbfb9620cc51dbdd637bdf4918f490df97d7f46222d4",
+  "tallyCounts": [
+    0,
+    1,
+    1,
+    0
+  ],
+  "decryptionShareDigests": [
+    "0x5a5a7ad245fa68779eb8951e87d643b6c703b1bf96f280ec52466304c8dfe730",
+    "0x51456f083a757c6cd748f285c72c60d2e48eb8ed66aff3883f89381fb5643177",
+    "0xba89ebfe80bf57e96ae0d2275d26b61cd01f1bff0df1ae7ffb876e08b6467d7a",
+    "0x4acc91b0580a272e570e96fb7b36d52121b7744099b1aa9db44665f3d4b0e078",
+    "0x7cfd4cab4ad1272069d3d33ee419ebb7a70efbe33d5bac344154a4d75b26c68c"
+  ],
+  "resultHash": "0xb297eeb7dd7f4d40e355373c22eee32985b258a9f15ecc654e7b331f7247ccd1",
+  "tallyProofPublicInputsHash": "0x6b2c2fffcd6f539a8ca44f111da9a6db267613ae8ac810adf147d710327b10d1",
+  "proofStatus": "tally-circuit-pending"
+}

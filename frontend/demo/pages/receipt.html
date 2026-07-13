@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Receipt | Scalable Voting Demo</title>
     <link rel="stylesheet" href="../styles.css" />
+    <script src="../interactive.js" defer></script>
   </head>
-  <body>
+  <body class="detail-page">
     <main class="shell">
-      <a href="../index.html">← Demo home</a>
+      <a class="back-link" href="../index.html">← Back to overview</a>
       <section class="hero">
         <div class="eyebrow">Receipt page</div>
         <h1>Give the voter a private inclusion receipt.</h1>
@@ -24,6 +25,11 @@
         </div>
       </section>
       <section class="grid">
+        <article class="step" data-receipt-viewer>
+          <h2>Generated receipt</h2>
+          <button class="button primary" type="button" data-load-receipt>Load verified receipt</button>
+          <pre class="mono" data-receipt-output>Start the demo server, then load the receipt.</pre>
+        </article>
         <article class="step">
           <h2>Receipt contains</h2>
           <ul class="status-list">

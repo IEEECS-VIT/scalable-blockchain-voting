@@ -2,11 +2,25 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { network } from "hardhat";
-import { keccak256, stringToHex, zeroAddress, zeroHash } from "viem";
+import {
+  encodeAbiParameters,
+  keccak256,
+  parseAbiParameters,
+  stringToHex,
+  type Address,
+  zeroAddress,
+  zeroHash,
+} from "viem";
 
-import { computeRegistrationPublicInputsHash } from "../packages/crypto/src/index.js";
+import {
+  bytes32ToSnarkField,
+  computeRegistrationPublicInputsHash,
+} from "../packages/crypto/src/index.js";
 
 const electionId = keccak256(stringToHex("test-election"));
+const candidateListHash = keccak256(stringToHex("test-candidate-list"));
+const canonicalProofNullifier = (label: string) =>
+  `0x${bytes32ToSnarkField(keccak256(stringToHex(label))).toString(16).padStart(64, "0")}` as const;
 
 describe("Voting system foundation", async function () {
   const { viem } = await network.create();
@@ -20,6 +34,7 @@ describe("Voting system foundation", async function () {
     ]);
     const voting = await viem.deployContract("VotingContract", [
       electionId,
+      candidateListHash,
       registry.address,
       owner.account.address,
       zeroAddress,
@@ -70,13 +85,14 @@ describe("Voting system foundation", async function () {
     ]);
     const voting = await viem.deployContract("VotingContract", [
       electionId,
+      candidateListHash,
       registry.address,
       owner.account.address,
       verifier.address,
     ]);
 
     const identityNullifier = keccak256(stringToHex("proof-ballot-identity"));
-    const ballotNullifier = keccak256(stringToHex("proof-ballot-nullifier"));
+    const ballotNullifier = canonicalProofNullifier("proof-ballot-nullifier");
     const packageDigest = keccak256(stringToHex("proof-ballot-package"));
     const ballotPublicInputsHash = keccak256(stringToHex("proof-ballot-public-inputs"));
 
@@ -126,6 +142,7 @@ describe("Voting system foundation", async function () {
     ]);
     const voting = await viem.deployContract("VotingContract", [
       electionId,
+      candidateListHash,
       registry.address,
       owner.account.address,
       zeroAddress,
@@ -141,7 +158,7 @@ describe("Voting system foundation", async function () {
       voting.write.submitBallotWithProof(
         [
           identityNullifier,
-          keccak256(stringToHex("unverified-ballot-nullifier")),
+          canonicalProofNullifier("unverified-ballot-nullifier"),
           keccak256(stringToHex("unverified-ballot-package")),
           keccak256(stringToHex("unverified-ballot-public-inputs")),
           "0x1234",
@@ -186,6 +203,58 @@ describe("Voting system foundation", async function () {
       identityNullifier,
     ]) as string;
     assert.equal(registeredVotingKey.toLowerCase(), voter.account.address.toLowerCase());
+  });
+
+  it("binds an Anon Aadhaar proof to the election nullifier and voting key", async function () {
+    const anonAadhaar = await viem.deployContract("MockAnonAadhaar");
+    const adapter = await viem.deployContract("AnonAadhaarEligibilityVerifier", [
+      anonAadhaar.address,
+      electionId,
+      3_600n,
+    ]);
+    const registry = await viem.deployContract("VoterRegistry", [
+      electionId,
+      owner.account.address,
+      adapter.address,
+    ]);
+    const identityNullifier = `0x${123n.toString(16).padStart(64, "0")}` as const;
+    const signal = await adapter.read.registrationSignal([
+      identityNullifier,
+      voter.account.address,
+    ]) as bigint;
+    const publicClient = await viem.getPublicClient();
+    const block = await publicClient.getBlock();
+    const nullifierSeed = bytes32ToSnarkField(electionId);
+    const proof = encodeAbiParameters(
+      parseAbiParameters(
+        "uint256 nullifierSeed, uint256 nullifier, uint256 timestamp, uint256 signal, uint256[4] revealArray, uint256[8] groth16Proof",
+      ),
+      [
+        nullifierSeed,
+        123n,
+        block.timestamp,
+        signal,
+        [0n, 0n, 0n, 0n],
+        [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n],
+      ],
+    );
+    await anonAadhaar.write.setAccepted([true]);
+    await registry.write.registerWithProof(
+      [identityNullifier, voter.account.address, proof],
+      { account: outsider.account },
+    );
+    assert.equal(
+      (await registry.read.votingKeyOf([identityNullifier]) as Address).toLowerCase(),
+      voter.account.address.toLowerCase(),
+    );
+
+    const changedIdentity = `0x${124n.toString(16).padStart(64, "0")}` as const;
+    await assert.rejects(
+      registry.write.registerWithProof(
+        [changedIdentity, outsider.account.address, proof],
+        { account: outsider.account },
+      ),
+    );
   });
 
   it("rejects proof registration without an accepted eligibility proof", async function () {

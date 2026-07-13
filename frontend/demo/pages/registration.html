@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Registration | Scalable Voting Demo</title>
     <link rel="stylesheet" href="../styles.css" />
+    <script src="../interactive.js" defer></script>
   </head>
-  <body>
+  <body class="detail-page">
     <main class="shell">
-      <a href="../index.html">← Demo home</a>
+      <a class="back-link" href="../index.html">← Back to overview</a>
       <section class="hero">
         <div class="eyebrow">Registration page</div>
         <h1>Bind anonymous eligibility to one ephemeral voting key.</h1>
@@ -18,23 +19,40 @@
           identifiable wallet does not directly publish the credential binding.
         </p>
         <div class="warning">
-          Simulation boundary: this page expects a real anonymous eligibility
-          proof later. The current fixture uses placeholder proof bytes and is
-          not an Anon Aadhaar proof.
+          Honest boundary: the official Anon Aadhaar contract adapter and
+          calldata builder are implemented. Producing and submitting a real
+          test-mode proof still requires the external SDK artifacts and a live
+          deployed verifier address.
         </div>
       </section>
       <section class="grid">
+        <article class="step" data-biometric-demo>
+          <h2>Biometric kiosk simulation</h2>
+          <p>
+            Run the failure and success paths used in the Plan B demo. Only an
+            outcome and audit sequence are retained; no fingerprint, image, or
+            Aadhaar number is collected.
+          </p>
+          <div class="actions">
+            <button class="button danger-button" type="button" data-biometric="fail">Simulate failure</button>
+            <button class="button primary" type="button" data-biometric="pass">Simulate success</button>
+          </div>
+          <div class="result-box" data-biometric-result aria-live="polite">Waiting for kiosk simulation.</div>
+          <pre class="mono" data-biometric-audit>[]</pre>
+        </article>
         <article class="step">
           <h2>Inputs</h2>
           <ul class="status-list">
             <li><span class="ok">✓</span><span>electionId and identityNullifier</span></li>
             <li><span class="ok">✓</span><span>ephemeral votingKey</span></li>
+            <li><span class="ok">✓</span><span>official Anon Aadhaar verifier adapter</span></li>
             <li><span class="pending">!</span><span>real Anon Aadhaar proof pending</span></li>
           </ul>
         </article>
         <article class="step">
           <h2>Relayer artifact</h2>
           <div class="mono">npm run build:registration-request -- registration-request-input.json</div>
+          <div class="mono">npm run build:anon-registration -- descriptor.json artifact.json</div>
           <p>
             Output includes publicInputsHash and registerWithProof calldata for
             a dedicated relayer account.

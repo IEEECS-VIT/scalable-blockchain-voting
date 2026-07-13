@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Voting | Scalable Voting Demo</title>
     <link rel="stylesheet" href="../styles.css" />
+    <script src="../interactive.js" defer></script>
   </head>
-  <body>
+  <body class="detail-page">
     <main class="shell">
-      <a href="../index.html">← Demo home</a>
+      <a class="back-link" href="../index.html">← Back to overview</a>
       <section class="hero">
         <div class="eyebrow">Voting page</div>
         <h1>Encrypt one selection without storing voter metadata.</h1>
@@ -18,19 +19,28 @@
           exclude timestamps, device IDs, client versions, and browser details.
         </p>
         <div class="warning">
-          Simulation boundary: ballot proof bytes in the local fixture are
-          placeholders. A real ballot-validity circuit must prove exactly one
-          valid candidate selection.
+          Real boundary: the version-2 fixture contains a genuine Groth16 proof
+          of one-hot BabyJubJub encryption. Anon Aadhaar and sponsored Amoy
+          submission remain external integration steps.
         </div>
       </section>
       <section class="grid">
+        <article class="step" data-ballot-viewer>
+          <h2>Artifact-backed ballot walkthrough</h2>
+          <p>Select one of the committed demo ballots to inspect its proof-bound package.</p>
+          <div class="actions">
+            <button class="button primary" type="button" data-ballot="1">Ballot 1</button>
+            <button class="button" type="button" data-ballot="2">Ballot 2</button>
+          </div>
+          <pre class="mono" data-ballot-output>Choose a ballot while the demo server is running.</pre>
+        </article>
         <article class="step">
           <h2>Current implementation</h2>
           <ul class="status-list">
             <li><span class="ok">✓</span><span>encrypted vote vector</span></li>
             <li><span class="ok">✓</span><span>canonical content-addressed JSON package</span></li>
-            <li><span class="ok">✓</span><span>ballot verifier adapter seam</span></li>
-            <li><span class="pending">!</span><span>real ballot SNARK pending</span></li>
+            <li><span class="ok">✓</span><span>generated Groth16 verifier and adapter</span></li>
+            <li><span class="ok">✓</span><span>real one-hot ballot SNARK</span></li>
           </ul>
         </article>
         <article class="step">

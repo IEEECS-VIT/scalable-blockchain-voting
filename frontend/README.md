@@ -1,10 +1,9 @@
 # Frontend
 
-The production Next.js frontend is still deferred until real proof artifacts,
-deployed verifier addresses, and ERC-4337 configuration are available.
-
-The repository now includes a static local demo UI in `frontend/demo/` so the
-research flow can be reviewed without pretending that mock proofs are real.
+The repository includes a zero-dependency local dashboard in `frontend/demo/`.
+It is intentionally served by the artifact generator, so reviewers see the
+same real ballot proofs, batch, receipts, and threshold result exercised by the
+tests instead of disconnected screenshots.
 
 Pages:
 
@@ -15,14 +14,16 @@ Pages:
 - `frontend/demo/pages/tally.html`
 - `frontend/demo/pages/verification.html`
 
-Open `frontend/demo/index.html` in a browser to walk through the current
-pipeline. Every page includes visible trust-boundary labels for placeholder
-proofs, pending real circuits, or mock verifier seams.
+Run `npm run demo:serve`, then open `http://127.0.0.1:8080`. Registration has a
+deterministic biometric fail/pass simulation whose audit log retains no raw
+biometric fields. Voting, receipt, tally, and verification pages load generated
+JSON evidence from the local server. Every page includes visible trust-boundary
+labels.
 
 This static UI is not a replacement for:
 
-- real Anon Aadhaar proof generation;
-- real ballot, batch, or tally circuits;
+- live Anon Aadhaar proof generation;
+- recursive batch or tally SNARK circuits;
 - deployed verifier contracts;
-- ERC-4337 sponsored transactions; or
+- a provider-sponsored Amoy transaction; or
 - a production web app.

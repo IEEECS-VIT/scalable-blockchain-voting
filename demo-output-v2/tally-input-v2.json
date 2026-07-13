@@ -1,0 +1,19 @@
+{
+  "electionId": "0x801ed15242c9d74bc81418d224bea751a4ac8248cb2416ecf508ab430e316f61",
+  "candidateListHash": "0x60b07ae66e12e8edd0a23c5079d865ee248097c2694daae1d6497a9647ca5312",
+  "acceptedBatches": [
+    {
+      "batchArtifactPath": "batch-artifact-v2.json",
+      "packages": [
+        {
+          "contentId": "ipfs://svb-real-proof-ballot-1",
+          "path": "vote-1-package-v2.json"
+        },
+        {
+          "contentId": "ipfs://svb-real-proof-ballot-2",
+          "path": "vote-2-package-v2.json"
+        }
+      ]
+    }
+  ]
+}

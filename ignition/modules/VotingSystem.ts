@@ -61,6 +61,7 @@ export default buildModule("VotingSystem", (m) => {
   ]);
   const votingContract = m.contract("VotingContract", [
     electionId,
+    candidateListHash,
     voterRegistry,
     owner,
     ballotProofVerifier,

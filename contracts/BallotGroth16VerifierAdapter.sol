@@ -29,6 +29,7 @@ contract BallotGroth16VerifierAdapter {
         bytes calldata proof,
         bytes32 publicInputsHash,
         bytes32 electionId,
+        bytes32 candidateListHash,
         bytes32 ballotNullifier,
         bytes32 votePackageDigest
     ) external view returns (bool) {
@@ -44,6 +45,7 @@ contract BallotGroth16VerifierAdapter {
 
         if (
             publicSignals[0] != uint256(electionId) % SNARK_SCALAR_FIELD ||
+            publicSignals[1] != uint256(candidateListHash) % SNARK_SCALAR_FIELD ||
             publicSignals[2] != uint256(ballotNullifier) % SNARK_SCALAR_FIELD ||
             publicSignals[3] != uint256(votePackageDigest)
         ) {
