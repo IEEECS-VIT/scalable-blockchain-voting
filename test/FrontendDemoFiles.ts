@@ -40,7 +40,7 @@ describe("frontend demo files", function () {
       assert.match(indexHtml, new RegExp(page.path.replace(".", "\\.")));
     }
     assert.match(indexHtml, /Honest boundary/i);
-    assert.match(indexHtml, /remain separately gated/i);
+    assert.match(indexHtml, /remain (?:separately )?gated/i);
 
     const interactiveScript = await readFile(
       join(demoDir, "interactive.js"),
@@ -56,7 +56,7 @@ describe("frontend demo files", function () {
       assert.match(html, /Simulation boundary|Real boundary|Honest boundary|Failure demonstration|Remaining blockers/i);
       assert.match(
         html,
-        /placeholder|pending|external integration|not a real|not an Anon Aadhaar|not trustless|not an audited|mock/i,
+        /placeholder|pending|external integration|not a real|not an Anon Aadhaar|not trustless|not an audited|not a full|mock/i,
       );
       assert.match(html, /Back to overview/);
     }

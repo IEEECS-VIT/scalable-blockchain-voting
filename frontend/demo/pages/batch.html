@@ -13,14 +13,14 @@
         <div class="eyebrow">Batch page</div>
         <h1>Commit many encrypted vote packages as one batch.</h1>
         <p>
-          The batcher builds deterministic manifests, checks nullifier
-          continuity, creates inclusion receipts, commits the exact encrypted
-          aggregate, and prepares the submitBatchWithProof argument prefix.
+          V3 verifies every unified Groth16 proof off-chain, enforces one active
+          eligibility root, checks nullifier continuity, creates inclusion
+          receipts, and commits the exact encrypted aggregate.
         </p>
         <div class="warning">
-          Simulation boundary: the trusted batch path is not trustless. The
-          proof-gated seam exists, but a real batch-validity/nullifier-state
-          circuit is still required.
+          Simulation boundary: the per-vote proofs are real, but the final
+          batch commitment is not trustless until recursive proof aggregation
+          also proves the nullifier-state transition on-chain.
         </div>
       </section>
       <section class="grid">
@@ -28,6 +28,7 @@
           <h2>Commands</h2>
           <div class="mono">npm run build:batch -- batch-input.json</div>
           <div class="mono">npm run build:batch:v2 -- batch-input.json batch-artifact.json</div>
+          <div class="mono">npm run build:batch:v3 -- batch-input.json batch-artifact-v3.json</div>
           <div class="mono">npm run check:data -- batch-input.json</div>
         </article>
         <article class="step">
@@ -36,6 +37,8 @@
             <li><span class="pending">!</span><span>duplicate nullifier rejected</span></li>
             <li><span class="pending">!</span><span>nullifier-root discontinuity rejected</span></li>
             <li><span class="pending">!</span><span>missing local/IPFS package rejected</span></li>
+            <li><span class="pending">!</span><span>invalid Groth16 ballot proof rejected</span></li>
+            <li><span class="pending">!</span><span>stale eligibility root rejected</span></li>
           </ul>
         </article>
       </section>

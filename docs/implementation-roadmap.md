@@ -33,6 +33,9 @@
   encrypted tally aggregation to the proof-compatible BabyJubJub ciphertext
 - [x] Migrate threshold decryption shares from the legacy secp256k1 path to
   BabyJubJub
+- [x] Combine private eligibility membership, election nullifier derivation,
+  package commitment, and encrypted ballot validity in one V3 circuit
+- [x] Deploy a generated verifier adapter and relayer-safe direct V3 contract
 
 ## Milestone 4 - Storage and batching
 
@@ -43,6 +46,10 @@
 - [x] Add an on-chain verifier seam for proof-gated batch submission
 - [ ] Implement a batch-validity/nullifier-state-transition circuit
 - [x] Add data-availability preflight failure handling
+- [x] Bind active eligibility root, real proof hashes, candidate list,
+  encryption key, aggregate ciphertext, and package leaves into V3 manifests
+- [x] Cryptographically verify every V3 ballot proof before batch generation
+- [x] Add signed batcher intake receipts and resolvable omission claims
 
 ## Milestone 5 - Tally
 
@@ -50,6 +57,8 @@
 - [x] Implement local partial threshold decryptions without reconstructing the
   key
 - [x] Add off-chain DLEQ correctness proofs for decryption shares
+- [x] Separate ceremony, trustee share generation, and combiner commands so the
+  combiner receives no trustee private share
 - [x] Build a tally result artifact that binds accepted batches, election
   configuration, aggregate ciphertext, decrypted totals, and decryption-share
   digests into publishable hashes
@@ -71,13 +80,17 @@
 - [x] Add a deterministic local demo fixture generator
 - [x] Add local demo runbook and research-alignment review
 - [x] Add complete live deployment documentation and parameter templates
+- [x] Upgrade the generated local dashboard and artifacts to V3
+- [x] Prevent trustee private-share and ballot-witness fields from being served
+- [x] Add reproducible gas and synthetic scale regression benchmarks
 - [ ] Record live addresses and explorer links after external deployment
 
 ## Definition of a credible final demo
 
-The repository-local Plan B demo is complete when it shows a real ballot proof,
-proof-bound encrypted packages, deterministic batching and receipts, duplicate
-rejection, and a real 5-of-9 local threshold result. Live-testnet completion is
+The repository-local V3 Plan B demo is complete when it shows a unified
+eligibility/nullifier/ballot proof, root-bound encrypted packages, deterministic
+proof-checked batching and receipts, duplicate rejection, omission
+accountability, and a real 5-of-9 local threshold result. Live-testnet completion is
 separately gated on an actual Anon Aadhaar test proof, deployed Amoy addresses,
 IPFS persistence, and a provider-sponsored UserOperation. Any permitted Plan B
 simulation must remain visibly labeled.
@@ -86,4 +99,6 @@ simulation must remain visibly labeled.
 
 - [ ] Implement recursive batch-validity/nullifier-state proof aggregation
 - [ ] Implement an on-chain-verifiable threshold tally SNARK
+- [ ] Replace the demo dealer ceremony with audited distributed key generation
+- [ ] Run real-proof distributed load, data-availability, and failure benchmarks
 - [ ] Complete independent circuit, contract, and ceremony audits

@@ -5,12 +5,12 @@ import path from "node:path";
 
 const port = Number(process.env.DEMO_PORT ?? "8080");
 const frontendRoot = path.resolve("frontend/demo");
-const artifactRoot = path.resolve(process.argv[2] ?? "demo-output-v2");
+const artifactRoot = path.resolve(process.argv[2] ?? "demo-output-v3");
 
 if (!process.argv.includes("--no-generate")) {
   const result = spawnSync(
     process.execPath,
-    ["--import", "tsx", "scripts/generate_complete_demo_v2.ts", artifactRoot],
+    ["--import", "tsx", "scripts/generate_complete_demo_v3.ts", artifactRoot],
     { cwd: process.cwd(), encoding: "utf8", stdio: "inherit" },
   );
   if (result.status !== 0) throw new Error("complete demo generation failed");

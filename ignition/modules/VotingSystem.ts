@@ -10,6 +10,8 @@ const DEFAULT_CANDIDATE_LIST_HASH = keccak256(
 const DEFAULT_PUBLIC_KEY_HASH = keccak256(
   stringToHex("replace-with-demo-election-public-key"),
 );
+const DEFAULT_ELIGIBILITY_ROOT =
+  "0x12949861ba7288c9ddfecdd8951e7624967f79a6c803a9fc399ac6a36de59070";
 
 export default buildModule("VotingSystem", (m) => {
   const owner = m.getAccount(0);
@@ -21,6 +23,10 @@ export default buildModule("VotingSystem", (m) => {
   const electionPublicKeyHash = m.getParameter(
     "electionPublicKeyHash",
     DEFAULT_PUBLIC_KEY_HASH,
+  );
+  const eligibilityRoot = m.getParameter(
+    "eligibilityRoot",
+    DEFAULT_ELIGIBILITY_ROOT,
   );
   const eligibilityVerifier = m.getParameter<Address>(
     "eligibilityVerifier",
@@ -66,11 +72,37 @@ export default buildModule("VotingSystem", (m) => {
     owner,
     ballotProofVerifier,
   ]);
+  const eligibilityRootRegistry = m.contract("EligibilityRootRegistry", [
+    electionId,
+    eligibilityRoot,
+    owner,
+  ]);
+  m.call(eligibilityRootRegistry, "freezeRoot");
+  const eligibleBallotGroth16Verifier = m.contract(
+    "EligibleBallotGroth16Verifier",
+  );
+  const eligibleBallotProofVerifier = m.contract(
+    "EligibleBallotGroth16VerifierAdapter",
+    [eligibleBallotGroth16Verifier],
+  );
+  const eligibleVotingContract = m.contract("EligibleVotingContract", [
+    electionId,
+    candidateListHash,
+    eligibilityRootRegistry,
+    eligibleBallotProofVerifier,
+    owner,
+  ]);
   const batchCommitment = m.contract("BatchCommitment", [
     electionId,
     owner,
     owner,
     batchProofVerifier,
+  ]);
+  const batcherReceiptRegistry = m.contract("BatcherReceiptRegistry", [
+    electionId,
+    owner,
+    batchCommitment,
+    owner,
   ]);
   const tallyVerifier = m.contract("TallyVerifier", [
     electionId,
@@ -82,9 +114,14 @@ export default buildModule("VotingSystem", (m) => {
     electionConfig,
     voterRegistry,
     votingContract,
+    eligibilityRootRegistry,
+    eligibleBallotGroth16Verifier,
+    eligibleBallotProofVerifier,
+    eligibleVotingContract,
     ballotGroth16Verifier,
     ballotProofVerifier,
     batchCommitment,
+    batcherReceiptRegistry,
     tallyVerifier,
   };
 });

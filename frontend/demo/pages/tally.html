@@ -14,14 +14,14 @@
         <div class="eyebrow">Tally page</div>
         <h1>Aggregate encrypted ballots, then decrypt through trustee shares.</h1>
         <p>
-          The version-2 pipeline aggregates accepted BabyJubJub ballots,
-          verifies five DLEQ decryption-share proofs, combines a 5-of-9
-          threshold without reconstructing the key, and publishes result hashes.
+          V3 aggregates only accepted root-bound batches. Five trustees run a
+          separate command with their own private share; the combiner verifies
+          every DLEQ proof without reconstructing the election private key.
         </p>
         <div class="warning">
           Honest boundary: threshold decryption is real off-chain cryptography.
-          The trustee ceremony is deterministic for this demo and the on-chain
-          tally SNARK remains pending.
+          The demo ceremony is dealer-generated Shamir, not audited DKG, and the
+          on-chain tally SNARK remains pending.
         </div>
       </section>
       <section class="grid">
@@ -35,6 +35,9 @@
           <div class="mono">npm run build:tally -- tally-input.json</div>
           <div class="mono">npm run build:tally-result -- tally-result-input.json</div>
           <div class="mono">npm run finalize:tally:v2 -- finalize-config.json output</div>
+          <div class="mono">npm run ceremony:threshold -- config.json ceremony</div>
+          <div class="mono">npm run trustee:decrypt-share -- private.json tally.json share.json</div>
+          <div class="mono">npm run finalize:tally:v3 -- input.json result.json</div>
         </article>
         <article class="step">
           <h2>Current demo output</h2>

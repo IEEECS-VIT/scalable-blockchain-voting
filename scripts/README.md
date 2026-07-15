@@ -42,6 +42,30 @@ npm run finalize:tally:v2 -- finalize-config.json threshold-output
 The deterministic coefficients in the complete local demo simulate nine test
 institutions; they are not a production distributed key ceremony.
 
+The V3 path replaces separate eligibility and ballot statements with one
+root-bound proof and verifies every proof before producing a batch:
+
+```bash
+npm run circuit:input:eligible-ballot -- eligible-input.json 1 1
+npm run proof:eligible-ballot -- eligible-input.json eligible-proof-output
+npm run build:vote-package:v3 -- descriptor.json vote-package-v3.json
+npm run build:batch:v3 -- batch-input.json batch-artifact-v3.json
+npm run build:tally:v3 -- tally-input.json encrypted-tally-v3.json
+```
+
+Trustee operations are separate in V3. The ceremony command creates one
+private file per trustee, each trustee command consumes only its own file, and
+the finalizer consumes only public DLEQ-proved shares:
+
+```bash
+npm run ceremony:threshold -- ceremony-config.json ceremony-output
+npm run trustee:decrypt-share -- trustee-private.json encrypted-tally-v3.json public-share.json
+npm run finalize:tally:v3 -- finalize-input.json tally-result-v3.json
+```
+
+The ceremony command is a demo dealer workflow, not production DKG. Never put
+its private-share output under a web-served or committed directory.
+
 `upload_vote_package.ts` validates a vote-package JSON file, rewrites it into
 canonical JSON, and uploads that exact content through an IPFS HTTP API. It
 prints the resulting `ipfs://...` content ID and the package digest.
@@ -135,12 +159,21 @@ verification.
 npm run demo:fixture -- ./demo-output
 ```
 
-For the real-proof local path, generate and serve the complete version-2 demo:
+For the current real-proof local path, generate and serve the complete V3 demo:
 
 ```bash
-npm run demo:complete -- ./demo-output-v2
+npm run demo:complete -- ./demo-output-v3
 npm run demo:serve
 ```
+
+Run measurable regression benchmarks with:
+
+```bash
+npx hardhat test --no-compile test/GasBenchmark.ts
+npm run benchmark:scale -- 10000
+```
+
+The scale command explicitly excludes real proof, storage, and network costs.
 
 `build_anon_aadhaar_registration.ts` checks the official Anon Aadhaar public
 signals and emits adapter-bound `registerWithProof` calldata. It requires a

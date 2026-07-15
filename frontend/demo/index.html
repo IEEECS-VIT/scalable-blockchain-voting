@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="A zero-cost privacy-preserving blockchain voting demonstration with real ballot proofs and threshold tallying." />
+    <meta name="description" content="A zero-cost privacy-preserving voting demo with unified eligibility proofs, encrypted batching, and threshold tallying." />
     <title>SVB — Private voting, public proof</title>
     <link rel="stylesheet" href="./styles.css" />
     <script src="./app.js" defer></script>
@@ -27,9 +27,9 @@
           <div class="eyebrow"><span class="live-dot"></span> Zero-cost cryptographic demo</div>
           <h1>Private votes.<br /><span>Public proof.</span></h1>
           <p class="lead">
-            A working voting pipeline where choices stay encrypted, malformed
-            ballots are rejected, many votes become one batch, and five of nine
-            trustees reveal only the final result.
+            A research demo where one proof privately checks eligibility,
+            one-person-one-vote and encrypted ballot validity. Packages are
+            batched, receipted and tallied without exposing individual choices.
           </p>
           <div class="hero-actions">
             <a class="button primary" href="#flow">Explore the flow</a>
@@ -38,8 +38,8 @@
           <div class="trust-note">
             <strong>Honest boundary</strong>
             <span>
-              Ballot proof and threshold tally use real local cryptography.
-              Live Anon Aadhaar, Amoy and ERC-4337 evidence remain separately gated.
+              Unified vote proofs and trustee-share verification are real.
+              Recursive batching, production DKG and live external evidence remain gated.
             </span>
           </div>
         </div>
@@ -47,7 +47,7 @@
         <aside class="result-panel" aria-label="Live demo result">
           <div class="panel-topline">
             <span>Latest local tally</span>
-            <span class="status-pill"><span class="live-dot"></span> Verified</span>
+            <span class="status-pill"><span class="live-dot"></span> Locally verified</span>
           </div>
           <div class="result-total">
             <strong data-ballot-count>—</strong>
@@ -66,9 +66,9 @@
 
       <section class="metrics-strip" aria-label="Implementation summary">
         <div><strong data-real-capabilities>—</strong><span>working cryptographic layers</span></div>
-        <div><strong>50</strong><span>automated tests passing</span></div>
-        <div><strong>0</strong><span>raw biometric fields stored</span></div>
-        <div><strong>1 tx</strong><span>needed per vote batch</span></div>
+        <div><strong>60+</strong><span>automated checks in the full suite</span></div>
+        <div><strong>0</strong><span>identity or choice fields in a vote package</span></div>
+        <div><strong>1</strong><span>constant-size commitment per batch</span></div>
       </section>
 
       <section class="section" id="flow">
@@ -84,36 +84,36 @@
           <a class="flow-card" href="./pages/registration.html">
             <span class="flow-number">01</span>
             <div class="flow-icon">ID</div>
-            <h3>Anonymous registration</h3>
-            <p>Simulate biometric presence, create an election identity, and bind one temporary voting key.</p>
+            <h3>Private eligibility</h3>
+            <p>Commit eligible credentials into a versioned root without publishing Aadhaar or biometric data.</p>
             <span class="flow-link">Open registration <span>↗</span></span>
           </a>
           <a class="flow-card" href="./pages/voting.html">
             <span class="flow-number">02</span>
             <div class="flow-icon">01</div>
             <h3>Encrypt and prove</h3>
-            <p>Turn one choice into BabyJubJub ciphertext and prove it is a valid one-hot ballot.</p>
+            <p>Prove eligibility, derive one election nullifier and validate encrypted one-hot choice in one SNARK.</p>
             <span class="flow-link">Inspect ballot <span>↗</span></span>
           </a>
           <a class="flow-card" href="./pages/receipt.html">
             <span class="flow-number">03</span>
             <div class="flow-icon">✓</div>
             <h3>Private receipt</h3>
-            <p>Keep a Merkle inclusion path that proves the encrypted package entered the batch.</p>
+            <p>Verify inclusion, or use a signed intake receipt to expose an unresolved omission claim.</p>
             <span class="flow-link">Check receipt <span>↗</span></span>
           </a>
           <a class="flow-card" href="./pages/batch.html">
             <span class="flow-number">04</span>
             <div class="flow-icon">▦</div>
             <h3>Batch commitment</h3>
-            <p>Combine package IDs, reject duplicate nullifiers, and commit many votes in one step.</p>
+            <p>Verify each real proof, reject duplicate nullifiers and commit the root-bound encrypted aggregate.</p>
             <span class="flow-link">View batching <span>↗</span></span>
           </a>
           <a class="flow-card" href="./pages/tally.html">
             <span class="flow-number">05</span>
             <div class="flow-icon">5/9</div>
             <h3>Threshold tally</h3>
-            <p>Aggregate while encrypted, verify trustee shares, and reveal only candidate totals.</p>
+            <p>Each trustee produces a separate DLEQ-proved share; the combiner reveals only totals.</p>
             <span class="flow-link">See tally <span>↗</span></span>
           </a>
           <a class="flow-card" href="./pages/verification.html">
@@ -144,8 +144,8 @@
         </div>
         <div class="artifact-links">
           <a href="/artifacts/demo-summary.json">Summary JSON <span>↗</span></a>
-          <a href="/artifacts/batch-artifact-v2.json">Batch artifact <span>↗</span></a>
-          <a href="/artifacts/threshold-tally/tally-result-v2.json">Threshold result <span>↗</span></a>
+          <a href="/artifacts/batch-artifact-v3.json">V3 batch artifact <span>↗</span></a>
+          <a href="/artifacts/tally-result-v3.json">V3 threshold result <span>↗</span></a>
         </div>
       </section>
     </main>

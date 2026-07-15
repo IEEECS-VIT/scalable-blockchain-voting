@@ -3,11 +3,9 @@
 ## Target flow
 
 ```text
-eligibility proof
-  -> election-scoped identity
-  -> ephemeral voting key
-  -> encrypted ballot package
-  -> ballot validity proof
+versioned eligibility root
+  -> unified private membership/nullifier/encryption proof
+  -> encrypted V3 ballot package
   -> IPFS/content-addressed storage
   -> batch manifest and Merkle roots
   -> on-chain batch commitment
@@ -74,6 +72,23 @@ the proof and explicitly checks that its election, ballot nullifier, and
 Poseidon package commitment match the values accepted by `VotingContract`.
 The trusted direct path remains only for local/reference tests.
 
+### `EligibilityRootRegistry` and `EligibleVotingContract`
+
+V3 commits an eligible credential set as a 24-level Poseidon Merkle root. The
+unified circuit privately proves membership, derives one election nullifier
+from the credential secret, validates one-hot BabyJubJub encryption, and binds
+the exact package commitment. `EligibleVotingContract` verifies that proof
+against the current permanently frozen root and allows an unrelated relayer to submit it
+without a per-voter registration transaction.
+
+This direct path proves the full V3 vote statement but still costs one
+transaction per vote. It is a verifier reference and fallback, not the intended
+national-scale path.
+
+The 24-level root has 16,777,216 slots. National operation therefore requires
+constituency/district election instances (with district identity bound into the
+election ID) or a reviewed deeper tree; the demo uses one small election root.
+
 ### `BatchCommitment`
 
 Records an append-only sequence of CID Merkle roots, nullifier roots, and
@@ -93,8 +108,20 @@ It does **not** prove:
 - that the manifest remains available; or
 - that the encrypted aggregate matches the committed ballots.
 
-A real batch-validity/nullifier-state proof is required before the proof-gated
+A real recursive batch-validity/nullifier-state proof is required before the proof-gated
 path can remove batcher trust in practice.
+
+### `BatcherReceiptRegistry`
+
+An authorized batcher can sign an EIP-712 intake receipt containing the
+election, eligibility root, package digest, package leaf, and inclusion
+deadline. After the deadline, anyone holding the receipt can open a public
+omission claim. Anyone can resolve that claim with a valid Merkle path against a
+root already committed by `BatchCommitment`.
+
+This makes censorship claims accountable and publicly resolvable. An open
+claim is not itself a cryptographic non-inclusion proof and does not guarantee
+network liveness.
 
 ### `packages/crypto`
 
@@ -102,8 +129,8 @@ Defines the off-chain vote-package and batch-manifest formats used before data
 is submitted to `BatchCommitment`. Vote packages intentionally exclude
 timestamps, device IDs, client versions, and other fingerprinting metadata.
 
-The package provides the original secp256k1 compatibility demo plus a canonical
-proof-compatible BabyJubJub path covering the real ballot proof, vote package,
+The package provides the original secp256k1 and V2 compatibility demos plus a
+canonical V3 BabyJubJub path covering the unified proof, vote package,
 aggregate-bound batch manifest, receipt, encrypted aggregation, and 5-of-9
 threshold decryption. It also provides deterministic public-key hashes,
 ballot-proof public-input hashing,
@@ -113,8 +140,9 @@ canonical vote-package JSON, Merkle roots, inclusion receipts,
 duplicate-nullifier checks, batch public-input hashing, encrypted tally input
 aggregation, tally-result hash binding, and data-availability preflight checks.
 
-Ballot validity is proved for the four-candidate BabyJubJub path, and version-2
-batch/tally artifacts use that same ciphertext. Five trustee shares include
+Eligibility, nullifier derivation, and ballot validity are proved together for
+the four-candidate V3 path. Every proof is checked before V3 batch generation,
+and the active eligibility root is bound through the tally. Five trustee shares include
 BabyJubJub DLEQ correctness proofs and are combined without reconstructing the
 private key. Recursive batch validity and on-chain tally statements still need
 circuits and verifier contracts for the stronger trustless version.
@@ -149,7 +177,7 @@ walking through the pipeline without live services. It is useful for demos and
 script regression checks, but it intentionally uses placeholder proof bytes
 and must not be presented as proof verification.
 
-`generate_complete_demo_v2.ts` builds the real local proof-compatible flow and
+`generate_complete_demo_v3.ts` builds the real local unified-proof flow and
 `serve_demo.ts` exposes its status and artifacts to `frontend/demo/`. The UI
 includes deterministic biometric failure/success, package, receipt, tally, and
 public-verification walkthroughs. It is a local demonstration app, not a
@@ -159,16 +187,18 @@ production identity or wallet client.
 
 | Capability | Current status | Required stronger version |
 | --- | --- | --- |
-| Eligibility | Trusted registrar, official Anon Aadhaar adapter, and calldata builder | Live test proof and audited deployment |
+| Eligibility | Versioned root plus real private membership proof; official Anon Aadhaar adapter retained | Audited credential issuance/revocation and live proof evidence |
 | Biometrics | Deterministic pass/fail kiosk simulation with metadata-free audit | Optional regulated authentication gateway |
 | Ballot encryption | Four-candidate proof-compatible BabyJubJub EC-ElGamal from ballot through threshold tally | Independent cryptographic review |
-| Ballot proof | Real Groth16 one-hot/encryption proof, generated Solidity verifier, and contract binding adapter | Independent circuit review and production multi-party setup |
-| Batching | Deterministic manifest builder, trusted root submission, plus verifier seam for proof-gated submission | Batch-validity and state-transition proof |
+| Ballot proof | Unified Groth16 eligibility, nullifier, one-hot encryption proof and generated verifier | Independent circuit review and production multi-party setup |
+| Batching | Real-proof-checked V3 manifest, root-bound aggregate/receipts, trusted root submission, and verifier seam | Recursive batch-validity and state-transition proof |
 | Gas sponsorship | v0.6/v0.7 validation, bundler estimation/submission/polling bridge | Provider-issued Paymaster data and live evidence |
-| Threshold tally | BabyJubJub 5-of-9 Shamir shares plus off-chain DLEQ share proofs | Distributed ceremony and verifier-compatible tally SNARK |
+| Threshold tally | Separate BabyJubJub 5-of-9 trustee commands plus off-chain DLEQ proofs | Audited DKG and verifier-compatible tally SNARK |
 | Encrypted tally aggregation | Local aggregation plus result-hash binding from accepted batch artifacts | Proof-gated aggregation over verified batches |
 | Tally verification | Verifier adapter plus test mock only | Generated and audited verifier contract |
 | Data availability | Local/IPFS-gateway preflight script | Multi-provider persistence strategy |
+| Omission accountability | Signed intake deadlines, public claims, committed Merkle resolution | Economic enforcement and proven liveness policy |
+| Benchmarks | Local gas regression and clearly labeled synthetic ingestion measurement | Real-proof distributed load and failure testing |
 | Storage upload | Canonical vote-package JSON upload through IPFS HTTP API | Multi-provider persistence and retrieval checks |
 | Final-demo readiness | Strict artifact gate for real-vs-mock status | Independent audit plus deployed end-to-end walkthrough |
 | Frontend | Functional local artifact-backed demo UI | Production app wired to wallet, relayer, storage, and live verifier artifacts |

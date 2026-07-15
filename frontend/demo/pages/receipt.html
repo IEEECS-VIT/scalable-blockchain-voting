@@ -18,10 +18,10 @@
           using a Merkle proof, without revealing the selected candidate.
         </p>
         <div class="warning">
-          Failure demonstration: if the package digest or Merkle sibling changes,
-          receipt verification fails against the committed CID Merkle root.
-          Full proof-system receipt verification is still pending real batch
-          validity proofs.
+          Failure demonstration: a changed digest or sibling fails Merkle
+          verification. A signed batcher intake deadline can also open a public
+          omission claim; it remains unresolved until valid committed inclusion
+          is shown. This is accountability, not a full liveness guarantee.
         </div>
       </section>
       <section class="grid">
@@ -36,11 +36,13 @@
             <li><span class="ok">✓</span><span>batchManifestDigest</span></li>
             <li><span class="ok">✓</span><span>packageDigest and leafHash</span></li>
             <li><span class="ok">✓</span><span>Merkle proof path</span></li>
+            <li><span class="ok">✓</span><span>EIP-712 batcher intake receipt</span></li>
+            <li><span class="ok">✓</span><span>on-chain omission claim and resolution</span></li>
           </ul>
         </article>
         <article class="step">
           <h2>Artifact</h2>
-          <div class="mono">batch-artifact.json → receipts[]</div>
+          <div class="mono">batch-artifact-v3.json → receipts[]</div>
         </article>
       </section>
     </main>

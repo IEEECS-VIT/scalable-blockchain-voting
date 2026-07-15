@@ -8,7 +8,10 @@ const circuitBuildDirectory = path.join(
   repositoryRoot,
   "circuits/build/ballot_validity",
 );
-const ceremonyDirectory = path.join(repositoryRoot, "circuits/ceremony");
+const ceremonyDirectory = path.join(
+  repositoryRoot,
+  "circuits/ceremony/ballot_validity",
+);
 const generatedContractsDirectory = path.join(repositoryRoot, "contracts/generated");
 const r1csPath = path.join(circuitBuildDirectory, "ballot_validity.r1cs");
 const initialPowersOfTauPath = path.join(ceremonyDirectory, "pot15_0000.ptau");

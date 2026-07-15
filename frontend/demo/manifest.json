@@ -1,6 +1,6 @@
 {
   "status": "functional-local-cryptographic-demo",
-  "warning": "Ballot proof and threshold tally are real local cryptography. Batch/tally SNARKs and external testnet integrations remain separately gated.",
+  "warning": "Unified eligibility-ballot proofs and threshold tally shares use real local cryptography. Recursive batch/tally proofs, production DKG, and external testnet integrations remain gated.",
   "pages": [
     {
       "id": "registration",

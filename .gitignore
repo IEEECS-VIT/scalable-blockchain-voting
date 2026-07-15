@@ -38,6 +38,13 @@ circuits/build/ballot_validity/*
 !circuits/build/ballot_validity/ballot_validity_js/
 circuits/build/ballot_validity/ballot_validity_js/*
 !circuits/build/ballot_validity/ballot_validity_js/ballot_validity.wasm
+!circuits/build/eligible_ballot/
+circuits/build/eligible_ballot/*
+!circuits/build/eligible_ballot/eligible_ballot_final.zkey
+!circuits/build/eligible_ballot/verification_key.json
+!circuits/build/eligible_ballot/eligible_ballot_js/
+circuits/build/eligible_ballot/eligible_ballot_js/*
+!circuits/build/eligible_ballot/eligible_ballot_js/eligible_ballot.wasm
 circuits/ceremony/
 
 # nyc test coverage

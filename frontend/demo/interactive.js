@@ -36,10 +36,11 @@ if (ballotViewer) {
     const trigger = event.target.closest("[data-ballot]");
     if (!trigger) return;
     try {
-      const ballot = await loadJson(`/artifacts/vote-${trigger.dataset.ballot}-package-v2.json`);
+      const ballot = await loadJson(`/artifacts/vote-${trigger.dataset.ballot}-package-v3.json`);
       output.textContent = pretty({
         version: ballot.version,
         electionId: ballot.electionId,
+        eligibilityRoot: ballot.eligibilityRoot,
         ballotNullifier: ballot.ballotNullifier,
         packageCommitment: ballot.packageCommitment,
         proofSystem: ballot.ballotValidityProof.system,
@@ -57,7 +58,7 @@ if (receiptTrigger) {
   receiptTrigger.addEventListener("click", async () => {
     const output = document.querySelector("[data-receipt-output]");
     try {
-      const batch = await loadJson("/artifacts/batch-artifact-v2.json");
+      const batch = await loadJson("/artifacts/batch-artifact-v3.json");
       output.textContent = pretty({
         verifiedAgainstRoot: true,
         cidMerkleRoot: batch.manifest.cidMerkleRoot,
@@ -74,14 +75,15 @@ if (tallyTrigger) {
   tallyTrigger.addEventListener("click", async () => {
     const output = document.querySelector("[data-tally-output]");
     try {
-      const tally = await loadJson("/artifacts/threshold-tally/tally-result-v2.json");
+      const tally = await loadJson("/artifacts/tally-result-v3.json");
       output.textContent = pretty({
         threshold: tally.threshold,
         trusteeCount: tally.trusteeCount,
         tallyCounts: tally.tallyCounts,
         verifiedShareDigests: tally.decryptionShareDigests,
         resultHash: tally.resultHash,
-        proofStatus: tally.proofStatus,
+        verificationStatus: tally.verificationStatus,
+        onchainTallyProofImplemented: tally.onchainTallyProofImplemented,
       });
     } catch (error) {
       output.textContent = `${error.message}. Run npm run demo:serve.`;

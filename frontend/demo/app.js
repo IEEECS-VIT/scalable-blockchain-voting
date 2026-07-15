@@ -70,8 +70,10 @@ if (statusGrid !== null) {
           ballotCount: summary.ballotCount,
           tallyCounts: summary.tallyCounts,
           manifestDigest: summary.manifestDigest,
+          eligibilityRoot: summary.eligibilityRoot,
           aggregateCiphertextDigest: summary.aggregateCiphertextDigest,
           resultHash: summary.resultHash,
+          verification: summary.verification,
         }, null, 2);
       }
     })

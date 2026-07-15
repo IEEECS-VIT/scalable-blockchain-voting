@@ -10,21 +10,24 @@ This repository includes:
 
 - a Hardhat 3 + TypeScript development environment;
 - immutable election configuration;
-- trusted-demo voter registration using election-scoped nullifiers and
-  ephemeral voting addresses;
+- a versioned eligibility-root registry that keeps identity records off-chain;
 - proof-based registration calldata generation for relayer submission;
 - dry-run/live script support for a dedicated registration relayer account;
 - a direct ballot-commitment path for local contract testing;
-- a real four-candidate BabyJubJub/Groth16 ballot-validity circuit, generated
-  Solidity verifier, and proof-gated direct ballot submission;
+- a real unified BabyJubJub/Groth16 circuit proving private eligibility
+  membership, election nullifier derivation, and encrypted one-hot ballot
+  validity, with a generated Solidity verifier;
 - encrypted ballot package utilities;
-- version-2 proof-compatible vote-package, aggregate-bound batch, receipt, and
-  encrypted tally CLI flows;
+- version-3 root-bound vote-package, real-proof-checked batch, receipt, and
+  encrypted tally CLI flows (with V2 retained for comparison);
 - IPFS upload, batch manifest, and data-availability scripts;
 - append-only batch commitments with nullifier-root continuity;
 - a proof-verifier seam for future batch-validity submission;
-- encrypted tally aggregation and real BabyJubJub 5-of-9 Shamir trustee
-  shares with DLEQ correctness proofs;
+- independently generated BabyJubJub 5-of-9 trustee decryption shares with DLEQ
+  correctness proofs, plus an explicitly demo-only dealer ceremony;
+- signed batcher intake receipts, public omission claims, and committed Merkle
+  inclusion resolution;
+- reproducible local gas and synthetic ingestion regression benchmarks;
 - tally result/public-input hash binding; and
 - a tally-verifier adapter that requires a real verifier contract before a
   result can be marked verified.
@@ -36,11 +39,10 @@ functional artifact-backed local dashboard. Live Anon Aadhaar proof material,
 provider-issued Paymaster data, and Amoy transaction evidence remain external
 deployment inputs; they are never replaced with fake evidence.
 
-The version-2 canonical path uses BabyJubJub from the real ballot proof through
-encrypted aggregation and threshold decryption. Real batch-recursion and tally
-SNARK circuits remain stronger post-demo work. The revised Plan B explicitly
-allows a trusted local batcher and verifier-hash tally phase, so these are not
-misrepresented as completed trustless proofs.
+The V3 canonical demo uses BabyJubJub from the unified proof through encrypted
+aggregation and threshold decryption. Recursive batch verification, an on-chain
+tally SNARK, audited DKG, and live infrastructure remain explicit research or
+deployment gates; they are not misrepresented as completed trustless proofs.
 
 ## Important security boundary
 
@@ -64,21 +66,23 @@ npm run compile
 npm test
 ```
 
-Generate a new real ballot proof with the committed public testnet proving
+Generate a new unified eligibility-and-ballot proof with the committed proving
 artifacts:
 
 ```bash
-npm run circuit:input:ballot -- ./ballot-input.json 1
-npm run proof:ballot -- ./ballot-input.json ./ballot-proof-output
+npm run circuit:input:eligible-ballot -- ./eligible-input.json 1 1
+npm run proof:eligible-ballot -- ./eligible-input.json ./eligible-proof-output
 ```
 
-Build the proof-compatible package, batch, and tally artifacts:
+Build V3 package, batch, tally, and independent trustee artifacts:
 
 ```bash
-npm run build:vote-package:v2 -- descriptor.json vote-package-v2.json
-npm run build:batch:v2 -- batch-input.json batch-artifact-v2.json
-npm run build:tally:v2 -- tally-input.json encrypted-tally-v2.json
-npm run finalize:tally:v2 -- finalize-config.json threshold-output
+npm run build:vote-package:v3 -- descriptor.json vote-package-v3.json
+npm run build:batch:v3 -- batch-input.json batch-artifact-v3.json
+npm run build:tally:v3 -- tally-input.json encrypted-tally-v3.json
+npm run ceremony:threshold -- ceremony-config.json ceremony-output
+npm run trustee:decrypt-share -- trustee-private.json encrypted-tally-v3.json public-share.json
+npm run finalize:tally:v3 -- finalize-input.json tally-result-v3.json
 ```
 
 Run the complete local cryptographic demo and dashboard:
@@ -87,12 +91,13 @@ Run the complete local cryptographic demo and dashboard:
 npm run demo:serve
 ```
 
-Then open `http://127.0.0.1:8080`. This regenerates real ballot-proof packages,
-the aggregate-bound batch, receipts, and the 5-of-9 threshold result before
-serving the UI.
+Then open `http://127.0.0.1:8080`. This regenerates V3 unified-proof packages,
+the root-bound batch, receipts, independent public trustee shares, and the 5-of-9
+result. Private ceremony files are created outside the served directory and
+removed after use.
 
-To regenerate the proving key, verifier, and matching test fixture, run
-`npm run circuit:setup:ballot`. This performs a fresh local testnet ceremony;
+To regenerate the V3 proving key and verifier, run
+`npm run circuit:setup:eligible-ballot`. This performs a fresh local ceremony;
 it is not a production multi-party key ceremony. The public proving key and
 WASM are committed so normal demo proof generation does not require rerunning
 that ceremony.
@@ -140,6 +145,9 @@ Runbook and alignment review:
 
 - [docs/demo-runbook.md](docs/demo-runbook.md)
 - [docs/research-alignment-review.md](docs/research-alignment-review.md)
+- [docs/v3-research-improvement-report.md](docs/v3-research-improvement-report.md)
+- [docs/local-benchmarks.md](docs/local-benchmarks.md)
+- [docs/recursive-batch-proof-spec.md](docs/recursive-batch-proof-spec.md)
 
 ## Repository layout
 
@@ -147,7 +155,7 @@ Runbook and alignment review:
 contracts/   Solidity contracts and verifier interfaces
 ignition/    Repeatable deployment modules
 test/        Contract tests
-circuits/    Real ballot circuit and planned batch/tally circuits
+circuits/    Real ballot and unified eligibility-ballot circuits
 packages/    Shared cryptography, proof-input, and Merkle utilities
 frontend/    Functional local demo UI and future production frontend
 docs/        Architecture, scope, and implementation roadmap
