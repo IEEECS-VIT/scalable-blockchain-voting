@@ -1,5 +1,7 @@
 # Scalable Blockchain Voting
 
+[![CI](https://github.com/IEEECS-VIT/scalable-blockchain-voting/actions/workflows/ci.yml/badge.svg)](https://github.com/IEEECS-VIT/scalable-blockchain-voting/actions/workflows/ci.yml)
+
 Zero-cost testnet demonstration of a privacy-preserving voting pipeline using
 election-scoped identities, encrypted ballot packages, batch commitments, and
 verifiable tally publication.
