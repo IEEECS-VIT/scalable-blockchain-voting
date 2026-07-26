@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm install
+
+      - name: TypeScript type-check
+        run: npm run typecheck
+
+      - name: Compile Solidity
+        run: npm run compile
+
+      - name: Compile circulator
+        run: npm run circuit:compile:eligible-ballot
+
+      - name: Run Hardhat tests
+        run: npm test
+
+      - name: Run crypto tests
+        run: npm run test:crypto
+
+      - name: Readiness check (non-blocking)
+        continue-on-error: true
+        run: |
+          echo "Running readiness check in annotation-only mode."
+          echo "Real-proof artifacts not expected in CI."
