@@ -124,4 +124,82 @@ describe("adversarial — contract negative tests", async function () {
       ], { account: relayer.account }),
     );
   });
+
+  it("rejects duplicate batch root in BatchCommitment", async function () {
+    const batcher = await viem.deployContract("BatchCommitment", [
+      electionId, owner.account.address, owner.account.address, zeroAddress,
+    ]);
+    const root = keccak256(stringToHex("adversarial-dup-root"));
+    const nr = keccak256(stringToHex("adversarial-dup-nr"));
+    const m = keccak256(stringToHex("adversarial-dup-m"));
+    await batcher.write.submitBatch([root, zeroHash, nr, m, 10n], { account: owner.account });
+    await assert.rejects(
+      batcher.write.submitBatch([root, nr, keccak256(stringToHex("x")), keccak256(stringToHex("y")), 5n], { account: owner.account }),
+    );
+  });
+
+  it("rejects batch from unauthorized address", async function () {
+    const batcher = await viem.deployContract("BatchCommitment", [
+      electionId, owner.account.address, owner.account.address, zeroAddress,
+    ]);
+    const relayer2 = (await viem.getWalletClients())[2]!;
+    await assert.rejects(
+      batcher.write.submitBatch([
+        keccak256(stringToHex("r")), zeroHash, keccak256(stringToHex("nr")),
+        keccak256(stringToHex("m")), 5n,
+      ], { account: relayer2.account }),
+    );
+  });
+
+  it("rejects zero-address receipt signer", async function () {
+    const batch = await viem.deployContract("BatchCommitment", [
+      electionId, owner.account.address, owner.account.address, zeroAddress,
+    ]);
+    const receipts = await viem.deployContract("BatcherReceiptRegistry", [
+      electionId, owner.account.address, batch.address, owner.account.address,
+    ]);
+    await assert.rejects(
+      receipts.write.setReceiptSigner([zeroAddress, true], { account: owner.account }),
+    );
+  });
+
+  it("rejects tally publication without a verifier", async function () {
+    const tally = await viem.deployContract("TallyVerifier", [
+      electionId, owner.account.address, zeroAddress,
+    ]);
+    await assert.rejects(
+      tally.write.publishTally([
+        keccak256(stringToHex("r")), keccak256(stringToHex("pi")), "0x1234",
+      ], { account: owner.account }),
+    );
+  });
+
+  it("rejects tally publication from non-owner", async function () {
+    const verifier = await viem.deployContract("MockTallyProofVerifier");
+    const tally = await viem.deployContract("TallyVerifier", [
+      electionId, owner.account.address, verifier.address,
+    ]);
+    const pi = keccak256(stringToHex("pi"));
+    await verifier.write.setAccepted([pi, true]);
+    const relayer2 = (await viem.getWalletClients())[2]!;
+    await assert.rejects(
+      tally.write.publishTally([
+        keccak256(stringToHex("r")), pi, "0x1234",
+      ], { account: relayer2.account }),
+    );
+  });
+
+  it("rejects invalid batch parameters (zero values)", async function () {
+    const batcher = await viem.deployContract("BatchCommitment", [
+      electionId, owner.account.address, owner.account.address, zeroAddress,
+    ]);
+    for (const args of [
+      [zeroHash, zeroHash, keccak256(stringToHex("nr")), keccak256(stringToHex("m")), 5n],
+      [keccak256(stringToHex("r")), zeroHash, zeroHash, keccak256(stringToHex("m")), 5n],
+      [keccak256(stringToHex("r")), zeroHash, keccak256(stringToHex("nr")), zeroHash, 5n],
+      [keccak256(stringToHex("r")), zeroHash, keccak256(stringToHex("nr")), keccak256(stringToHex("m")), 0n],
+    ] as const) {
+      await assert.rejects(batcher.write.submitBatch([...args], { account: owner.account }));
+    }
+  });
 });
